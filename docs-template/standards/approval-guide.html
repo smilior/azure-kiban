@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>承認ガイド</title>
+<style>
+:root {
+  --paper: #F4F5F1; --card: #FFFFFF; --ink: #1C2622; --muted: #5D6B63;
+  --line: #D9DED6; --line-strong: #2A3630;
+  --red: #C43A2E; --green: #1E7A46; --blue: #2B5FAB;
+  --tint-green: #E1EFE6; --tint-blue: #E3EAF5;
+  --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
+  --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", sans-serif;
+  --mono: "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141917; --card: #1D2421; --ink: #E8ECE7; --muted: #96A49B;
+    --line: #303B35; --line-strong: #C6D0C9;
+    --red: #E06A5C; --green: #4DAE7C; --blue: #6E9BD8;
+    --tint-green: #1F332A; --tint-blue: #212B3B;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); font-size: 14.5px; line-height: 2.0; color: var(--ink); background: var(--paper); }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.page { max-width: 880px; margin: 0 auto; padding: 36px 28px 72px; }
+
+.crumb { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--muted); margin-bottom: 34px; }
+.crumb a { color: var(--muted); }
+.crumb a:hover { color: var(--blue); }
+
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; color: var(--muted); margin-bottom: 14px; }
+h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(24px, 4vw, 34px); letter-spacing: .05em; line-height: 1.5; }
+.doc-lead { margin-top: 10px; color: var(--muted); font-size: 15px; }
+
+.wh { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 36px; }
+.w { background: var(--card); border: 1px solid var(--line); padding: 16px 20px 12px; }
+.w .tag { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; color: var(--red); }
+.w h3 { font-size: 14.5px; font-weight: 700; margin: 2px 0 6px; }
+.w p { font-size: 12.5px; color: var(--muted); line-height: 1.9; }
+.w p b { color: var(--ink); }
+@media (max-width: 720px) { .wh { grid-template-columns: 1fr; } }
+
+section { margin-top: 56px; }
+.sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+.sec-no { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: .1em; white-space: nowrap; }
+h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(19px, 3vw, 24px); letter-spacing: .06em; }
+.sec-head::after { content: ""; flex: 1; border-top: 1px solid var(--line); transform: translateY(-4px); }
+.sec-intro { margin-bottom: 20px; max-width: 44em; }
+
+figure.fig { background: var(--card); border: 1px solid var(--line); padding: 18px 16px 12px; margin: 18px 0; overflow-x: auto; }
+figure.fig svg { display: block; width: 100%; height: auto; min-width: 680px; font-family: var(--sans); }
+figure.fig figcaption { font-size: 12px; color: var(--muted); margin-top: 6px; padding: 10px 6px 0; border-top: 1px solid var(--line); line-height: 1.8; }
+figure.fig figcaption .fno { font-family: var(--mono); color: var(--red); margin-right: 8px; }
+.dgm .box { fill: var(--card); stroke: var(--line-strong); stroke-width: 1.2; }
+.dgm .ok { fill: var(--tint-green); stroke: var(--green); stroke-width: 1.4; }
+.dgm .main { font-size: 12.5px; font-weight: 600; fill: var(--ink); }
+.dgm .sub { font-size: 10px; fill: var(--muted); }
+.dgm .flow { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+.dgm .back { stroke: var(--muted); stroke-width: 1.4; fill: none; stroke-dasharray: 4 3; }
+.dgm .gate { fill: var(--card); stroke: var(--red); stroke-width: 1.6; }
+.dgm .lbl { font-size: 10px; fill: var(--muted); }
+.dgm .chipbg { fill: var(--card); opacity: .95; }
+
+.tblwrap { overflow-x: auto; border: 1px solid var(--line); background: var(--card); }
+table { border-collapse: collapse; width: 100%; min-width: 560px; }
+th { text-align: left; font-family: var(--mono); font-weight: 500; font-size: 10.5px; letter-spacing: .14em; color: var(--muted); padding: 10px 16px 8px; border-bottom: 1.5px solid var(--line-strong); white-space: nowrap; }
+td { padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 13.5px; line-height: 1.9; vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+td.hd { font-weight: 700; white-space: nowrap; }
+td .t { font-family: var(--mono); font-size: 11px; color: var(--green); white-space: nowrap; }
+
+.assure { margin-top: 18px; border-left: 3px solid var(--green); background: var(--card); padding: 12px 18px; font-size: 13px; }
+.assure b { font-weight: 700; }
+
+footer { margin-top: 64px; padding-top: 18px; border-top: 1.5px solid var(--line-strong); font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .06em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<nav class="crumb"><a href="index.html">← ポータル</a><span>問い合わせ: 情報システム(m_nakagawa@smilior.com)</span></nav>
+
+<header>
+  <div class="eyebrow">FOR APPROVERS ・ STD-AIDEV-006</div>
+  <h1>承認ガイド</h1>
+  <p class="doc-lead">承認は4種類、1件5〜10分です。記録はすべて自動で残ります。</p>
+</header>
+
+<div class="wh">
+  <div class="w"><span class="tag">WHY ─ なぜ</span><h3>監査に耐える承認記録を、手間なく残すためです</h3>
+    <p>押印や台帳は使いません。<b>承認の操作そのものが記録になる</b>仕組みです(統制規程 STD-AIDEV-003 に基づきます)。</p></div>
+  <div class="w"><span class="tag">WHO ─ だれが</span><h3>承認者はあなた、起案は情報システム担当です</h3>
+    <p>文書の下書きはAIが作りますが、<b>担当者が確認してから</b>依頼します。AIの出力がそのまま届くことはありません。</p></div>
+  <div class="w"><span class="tag">WHAT ─ なにを</span><h3>承認は4種類です</h3>
+    <p>① 企画のGO ② 規程の制定・改訂 ③ リリース ④ 文書改訂(PRのApprove)。<b>それ以外の判断は依頼しません。</b></p></div>
+  <div class="w"><span class="tag">WHEN ─ いつ</span><h3>依頼が届いたときだけです</h3>
+    <p>定例の確認作業はありません。目安時間: <b>企画5分 ・ 規程10分 ・ リリース5分 ・ 文書改訂1〜2分</b>。</p></div>
+  <div class="w"><span class="tag">WHERE ─ どこで</span><h3>依頼メッセージのリンク先で完結します</h3>
+    <p>文書サイトまたはGitHubが開きます。承認は<b>GitHubのApproveボタン</b>、または規程の承認欄への記入です。</p></div>
+  <div class="w"><span class="tag">HOW ─ どうやって</span><h3>種類ごとの「見るポイント」を下にまとめました</h3>
+    <p>各3点以内です。全文を読む必要はありません。<b>疑問はコメントで差し戻せば、直して再依頼が届きます。</b></p></div>
+</div>
+
+<section>
+  <div class="sec-head"><span class="sec-no">図解</span><h2>承認1件の流れ</h2></div>
+  <figure class="fig">
+  <svg class="dgm" viewBox="0 0 960 250" role="img" aria-label="承認フロー。依頼が届く、リンクを開く、見るポイントを確認、判断、承認で記録が残る。疑問があれば差し戻し">
+    <defs>
+      <marker id="map" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 Z" fill="var(--muted)"/></marker>
+    </defs>
+
+    <g><rect x="30" y="80" width="150" height="56" rx="4" class="box"/><text x="105" y="103" text-anchor="middle" class="main">依頼が届く</text><text x="105" y="121" text-anchor="middle" class="sub">メール / チャット(リンク付き)</text></g>
+    <g><rect x="215" y="80" width="150" height="56" rx="4" class="box"/><text x="290" y="103" text-anchor="middle" class="main">リンクを開く</text><text x="290" y="121" text-anchor="middle" class="sub">文書サイト / GitHub</text></g>
+    <g><rect x="400" y="80" width="150" height="56" rx="4" class="box"/><text x="475" y="103" text-anchor="middle" class="main">見るポイントを確認</text><text x="475" y="121" text-anchor="middle" class="sub">種類ごとに3点以内</text></g>
+
+    <rect x="602" y="90" width="36" height="36" transform="rotate(45 620 108)" class="gate"/>
+    <text x="620" y="112" text-anchor="middle" style="font-size:10.5px;font-weight:700" fill="var(--red)">判断</text>
+
+    <g><rect x="700" y="80" width="110" height="56" rx="4" class="ok"/><text x="755" y="103" text-anchor="middle" class="main">承認する</text><text x="755" y="121" text-anchor="middle" class="sub">Approve / 承認欄</text></g>
+    <g><rect x="840" y="80" width="95" height="56" rx="4" class="box"/><text x="887" y="103" text-anchor="middle" class="main">記録が残る</text><text x="887" y="121" text-anchor="middle" class="sub">自動(git log)</text></g>
+
+    <line x1="180" y1="108" x2="211" y2="108" class="flow" marker-end="url(#map)"/>
+    <line x1="365" y1="108" x2="396" y2="108" class="flow" marker-end="url(#map)"/>
+    <line x1="550" y1="108" x2="591" y2="108" class="flow" marker-end="url(#map)"/>
+    <line x1="649" y1="108" x2="696" y2="108" class="flow" marker-end="url(#map)"/>
+    <rect x="654" y="88" width="34" height="15" class="chipbg"/><text x="671" y="99" text-anchor="middle" class="lbl">OK</text>
+    <line x1="810" y1="108" x2="836" y2="108" class="flow" marker-end="url(#map)"/>
+
+    <line x1="620" y1="134" x2="620" y2="176" class="flow" marker-end="url(#map)"/>
+    <rect x="600" y="146" width="40" height="15" class="chipbg"/><text x="620" y="157" text-anchor="middle" class="lbl">疑問</text>
+    <g><rect x="545" y="180" width="150" height="48" rx="4" class="box"/><text x="620" y="200" text-anchor="middle" class="main">コメントで差し戻す</text><text x="620" y="217" text-anchor="middle" class="sub">理由は1行で十分</text></g>
+    <path d="M 541,204 L 105,204 L 105,140" class="back" marker-end="url(#map)"/>
+    <rect x="240" y="196" width="150" height="15" class="chipbg"/><text x="315" y="207" text-anchor="middle" class="lbl">担当が直して再依頼</text>
+  </svg>
+  <figcaption><span class="fno">図 1</span>承認1件の流れ。差し戻しても記録は残り、直して再依頼が届きます。</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">HOW</span><h2>種類ごとの見るポイント</h2></div>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>承認の種類</th><th>目安</th><th>見るポイント(これだけで判断できます)</th></tr></thead>
+    <tbody>
+      <tr><td class="hd">① 企画のGO</td><td><span class="t">5分</span></td><td>効果の数字に根拠があるか(作業時間×頻度×人数) ・ スコープ外が明記されているか ・ 概算費用が効果に見合うか</td></tr>
+      <tr><td class="hd">② 規程</td><td><span class="t">10分</span></td><td>例外時の扱いが現実的か ・ 「要確認」が残っていれば、その場で決めるか宿題にするか</td></tr>
+      <tr><td class="hd">③ リリース</td><td><span class="t">5分</span></td><td>利用部門の受入確認(UAT)が完了しているか ・ 戻す手順(ロールバック)が書いてあるか</td></tr>
+      <tr><td class="hd">④ 文書改訂(PR)</td><td><span class="t">1〜2分</span></td><td>差分(何が変わったか)に納得できるか。GitHubの緑/赤の表示が差分です</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="assure"><b>安心材料:</b>承認した変更は1操作で元に戻せます(revert)。取り返しのつかない承認はこの仕組みには存在しないため、<b>迷ったら差し戻し、軽微なら通す</b>で運用できます。</p>
+</section>
+
+<footer>
+  <span>根拠規程: <a href="governance.html">統制規程 STD-AIDEV-003</a></span>
+  <span>STD-AIDEV-006 ・ REV 1.0 ・ 2026-07-04</span>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>はじめてのTDD ⑤ 検収編</title>
+<style>
+:root {
+  --paper: #F4F5F1; --card: #FFFFFF; --ink: #1C2622; --muted: #5D6B63;
+  --line: #D9DED6; --line-strong: #2A3630;
+  --red: #C43A2E; --green: #1E7A46; --blue: #2B5FAB;
+  --tint-red: #F7E4E1; --tint-green: #E1EFE6; --tint-blue: #E3EAF5;
+  --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
+  --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", sans-serif;
+  --mono: "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141917; --card: #1D2421; --ink: #E8ECE7; --muted: #96A49B;
+    --line: #303B35; --line-strong: #C6D0C9;
+    --red: #E06A5C; --green: #4DAE7C; --blue: #6E9BD8;
+    --tint-red: #3A2523; --tint-green: #1F332A; --tint-blue: #212B3B;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); font-size: 14.5px; line-height: 2.0; color: var(--ink); background: var(--paper); }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.page { max-width: 880px; margin: 0 auto; padding: 36px 28px 72px; }
+
+.crumb { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--muted); margin-bottom: 22px; }
+.crumb a { color: var(--muted); }
+.crumb a:hover { color: var(--blue); }
+.series { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 30px; }
+.series a { font-size: 12px; padding: 3px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--card); }
+.series a:hover { text-decoration: none; color: var(--ink); }
+.series a.cur { border-color: var(--green); color: var(--green); font-weight: 700; background: var(--tint-green); }
+
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; color: var(--muted); margin-bottom: 14px; }
+h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(24px, 4vw, 34px); letter-spacing: .05em; line-height: 1.5; }
+.doc-lead { margin-top: 10px; color: var(--muted); font-size: 15px; }
+
+section { margin-top: 54px; }
+.sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+.sec-no { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: .1em; white-space: nowrap; }
+h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(19px, 3vw, 24px); letter-spacing: .06em; }
+.sec-head::after { content: ""; flex: 1; border-top: 1px solid var(--line); transform: translateY(-4px); }
+p.body { margin: 10px 0; max-width: 44em; }
+p.body b { font-weight: 700; }
+p.body code, li code { font-family: var(--mono); font-size: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 3px; padding: 0 6px; }
+
+ol.walk { list-style: none; counter-reset: wk; margin: 14px 0; }
+ol.walk li { counter-increment: wk; display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px dashed var(--line); font-size: 13.5px; align-items: baseline; }
+ol.walk li::before { content: counter(wk); font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--green); border: 1.5px solid var(--green); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; flex: none; transform: translateY(4px); }
+ol.walk li b { font-weight: 700; }
+ol.walk .who { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 1px 8px; border-radius: 3px; margin-left: 6px; white-space: nowrap; }
+ol.walk .who.ai { color: var(--blue); background: var(--tint-blue); }
+ol.walk .who.hu { color: var(--red); background: var(--tint-red); }
+
+figure.fig { background: var(--card); border: 1px solid var(--line); padding: 18px 16px 12px; margin: 18px 0; overflow-x: auto; }
+figure.fig svg { display: block; width: 100%; height: auto; min-width: 680px; font-family: var(--sans); }
+figure.fig figcaption { font-size: 12px; color: var(--muted); margin-top: 6px; padding: 10px 6px 0; border-top: 1px solid var(--line); line-height: 1.8; }
+figure.fig figcaption .fno { font-family: var(--mono); color: var(--red); margin-right: 8px; }
+.dgm .doc { fill: var(--tint-blue); stroke: var(--blue); stroke-width: 1.4; }
+.dgm .tst { fill: var(--tint-green); stroke: var(--green); stroke-width: 1.4; }
+.dgm .none { fill: var(--card); stroke: var(--muted); stroke-width: 1.3; stroke-dasharray: 5 4; }
+.dgm .main { font-size: 12.5px; font-weight: 700; fill: var(--ink); }
+.dgm .sub { font-size: 10px; fill: var(--muted); }
+.dgm .flow { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+.dgm .dash { stroke: var(--muted); stroke-width: 1.3; fill: none; stroke-dasharray: 4 3; }
+.dgm .chipbg { fill: var(--card); opacity: .95; }
+.dgm .lbl { font-size: 10px; fill: var(--ink); font-weight: 600; }
+
+.tblwrap { overflow-x: auto; border: 1px solid var(--line); background: var(--card); margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; }
+th { text-align: left; font-family: var(--mono); font-weight: 500; font-size: 10.5px; letter-spacing: .14em; color: var(--muted); padding: 10px 16px 8px; border-bottom: 1.5px solid var(--line-strong); white-space: nowrap; }
+td { padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 13.5px; line-height: 1.9; vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+td.hd { font-weight: 700; white-space: nowrap; }
+
+.pit { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--green); padding: 12px 18px; margin: 12px 0; font-size: 13px; }
+.pit .l { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--green); display: block; margin-bottom: 2px; }
+.pit b { font-weight: 700; }
+.pit code { font-family: var(--mono); font-size: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 3px; padding: 0 6px; }
+
+details.quiz { background: var(--card); border: 1px solid var(--line); padding: 12px 18px; margin: 10px 0; }
+details.quiz summary { cursor: pointer; font-weight: 700; font-size: 13.5px; }
+details.quiz p { font-size: 13px; color: var(--muted); margin-top: 8px; }
+details.quiz p b { color: var(--green); }
+
+.pn { display: flex; justify-content: space-between; gap: 12px; margin-top: 56px; flex-wrap: wrap; }
+.pn a { font-size: 13px; font-weight: 600; padding: 10px 18px; border: 1px solid var(--line); background: var(--card); }
+.pn a:hover { text-decoration: none; border-color: var(--green); }
+
+footer { margin-top: 48px; padding-top: 18px; border-top: 1.5px solid var(--line-strong); font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .06em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<nav class="crumb"><a href="index.html">← ポータル</a><span>問い合わせ: 情報システム(m_nakagawa@smilior.com)</span></nav>
+<nav class="series">
+  <a href="tdd-basics.html">① 基本編</a>
+  <a href="tdd-modification.html">② 改修編</a>
+  <a href="tdd-levels.html">③ レベル編</a>
+  <a href="tdd-perspectives.html">④ 観点編</a>
+  <a class="cur" href="tdd-inspection.html">⑤ 検収編</a>
+</nav>
+
+<header>
+  <div class="eyebrow">TDD FOR BEGINNERS 5/5 ・ STD-AIDEV-007</div>
+  <h1>はじめてのTDD ⑤ 検収編</h1>
+  <p class="doc-lead">AIに書かせたテストの抜けを、人間はどう見つけるか。答えは「数を数える」です。</p>
+</header>
+
+<section>
+  <div class="sec-head"><span class="sec-no">5-1</span><h2>人間の仕事は「数の検収」</h2></div>
+  <p class="body">AIが書いた大量のテストコードを読んで網羅を確かめるのは無理です。そこで検収を<b>「中身を読む」から「数を数える」に変えます</b>。テストには必ず出どころの文書(正本)があり、正本から<b>あるべき本数(母数)</b>が決まります。母数と実際の本数が合っているかだけを見るのが人間の仕事です。</p>
+  <p class="body">そのためにAIへの依頼を二段階に分けます。いきなりコードを書かせないのがコツです。</p>
+  <ol class="walk">
+    <li><span><b>一覧表を出させる。</b>「正本からテストケースの一覧表(ID・シナリオ・観点・レベル)を出して」<span class="who ai">AI</span></span></li>
+    <li><span><b>数と抜けだけ検収する。</b>「US-03のシナリオが要件定義に4本あるのに表に3本しかない」を見つける。中身のレビューはまだしない<span class="who hu">人間</span></span></li>
+    <li><span><b>承認した表をコード化させ、全件Redを確認する。</b>ここから先は②改修編の凍結ルールどおり<span class="who ai">AI</span></span></li>
+  </ol>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">5-2</span><h2>母数はどの文書から来るか</h2></div>
+  <p class="body">レベルごとに正本と母数が決まっています。<b>総合と結合は一括生成+数の検収、単体は事前に一覧を作りません</b>(①基本編の「1本ずつ」のリズムをAIにも守らせます)。</p>
+
+  <figure class="fig">
+  <svg class="dgm" viewBox="0 0 960 330" role="img" aria-label="文書からテストへの対応マップ。02要件定義から総合、04基本設計から結合、単体は対になる文書なし">
+    <defs>
+      <marker id="ti" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 Z" fill="var(--muted)"/></marker>
+    </defs>
+
+    <g>
+      <rect x="40" y="52" width="280" height="84" rx="5" class="doc"/>
+      <text x="180" y="78" text-anchor="middle" class="main">02 要件定義書</text>
+      <text x="180" y="98" text-anchor="middle" class="sub">受け入れ条件(US-XX-Sn)</text>
+      <text x="180" y="114" text-anchor="middle" class="sub">権限マトリクス ・ 同時利用者数</text>
+    </g>
+    <g>
+      <rect x="40" y="162" width="280" height="66" rx="5" class="doc"/>
+      <text x="180" y="188" text-anchor="middle" class="main">04 基本設計書</text>
+      <text x="180" y="207" text-anchor="middle" class="sub">API仕様(OpenAPI) ・ ER図(スキーマ)</text>
+    </g>
+    <g>
+      <rect x="40" y="254" width="280" height="56" rx="5" class="doc"/>
+      <text x="180" y="277" text-anchor="middle" class="main">CLAUDE.md(規約)</text>
+      <text x="180" y="295" text-anchor="middle" class="sub">テスト方針 ・ 命名規則</text>
+    </g>
+
+    <g>
+      <rect x="650" y="52" width="270" height="64" rx="5" class="tst"/>
+      <text x="785" y="78" text-anchor="middle" class="main">総合テスト(旗)</text>
+      <text x="785" y="97" text-anchor="middle" class="sub">ストーリー着手時に一括生成</text>
+    </g>
+    <g>
+      <rect x="650" y="150" width="270" height="72" rx="5" class="tst"/>
+      <text x="785" y="177" text-anchor="middle" class="main">結合テスト</text>
+      <text x="785" y="196" text-anchor="middle" class="sub">基本設計の確定後に一括生成</text>
+    </g>
+    <g>
+      <rect x="650" y="252" width="270" height="60" rx="5" class="none"/>
+      <text x="785" y="276" text-anchor="middle" class="main">単体テスト</text>
+      <text x="785" y="295" text-anchor="middle" class="sub">一覧は作らない。内側ループで1本ずつ</text>
+    </g>
+
+    <line x1="320" y1="80" x2="646" y2="82" class="flow" marker-end="url(#ti)"/>
+    <rect x="388" y="64" width="190" height="17" class="chipbg"/>
+    <text x="483" y="77" text-anchor="middle" class="lbl">母数 = シナリオ数(US-XX-Sn)</text>
+
+    <line x1="320" y1="120" x2="646" y2="172" class="dash" marker-end="url(#ti)"/>
+    <rect x="380" y="132" width="152" height="16" class="chipbg"/>
+    <text x="456" y="144" text-anchor="middle" class="sub">権限・同時は補助入力</text>
+
+    <line x1="320" y1="192" x2="646" y2="188" class="flow" marker-end="url(#ti)"/>
+    <rect x="352" y="197" width="262" height="17" class="chipbg"/>
+    <text x="483" y="210" text-anchor="middle" class="lbl">母数 = エンドポイント×代表 + 制約数</text>
+
+    <line x1="320" y1="282" x2="646" y2="282" class="dash" marker-end="url(#ti)"/>
+    <rect x="398" y="266" width="170" height="16" class="chipbg"/>
+    <text x="483" y="278" text-anchor="middle" class="sub">ルールだけ渡す(母数なし)</text>
+  </svg>
+  <figcaption><span class="fno">図 1</span>文書→テストの対応マップ。実線は母数が数えられる対応、点線は補助・ルールのみ。青=正本の文書、緑=一括生成するテスト。</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">5-3</span><h2>番号を名前に埋めると、検収が機械になる</h2></div>
+  <p class="body">受け入れ条件のシナリオに <code>US-01-S1</code> 形式の番号を振り、テスト名に必ず含めます。</p>
+  <div class="pit"><span class="l">NAMING RULE</span><code>test_US01_S2_在庫0の備品は借りられない</code><br>ストーリー番号+シナリオ番号+仕様文。この形にすると<b>「S番号の欠番 = 未実装」</b>が機械的に分かり、突き合わせをAIに任せられます: 「02の全シナリオと tests/ を突き合わせ、テストのないシナリオを列挙して」。実施はストーリー完了時とリリース前の2回です。</div>
+  <p class="body">番号台帳を別に作るわけではない点が大事です。<b>名前に埋めるだけ</b>なので、統制規程の「重いトレーサビリティは平時に維持しない」という方針と両立します。監査で対応表を求められたら、この名前からAIに生成させれば済みます。</p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">5-4</span><h2>外側と内側で、検収のやり方が違う</h2></div>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>ループ</th><th>AIへの出力のさせ方</th><th>人間の検収</th></tr></thead>
+    <tbody>
+      <tr><td class="hd">外側(総合・結合)</td><td>一括: 正本 → 一覧表 → 承認 → コード化</td><td><b>数の突き合わせ</b>(表 vs 母数)</td></tr>
+      <tr><td class="hd">内側(単体)</td><td>逐次: 3拍子の中で1本ずつ</td><td><b>毎回のRed確認</b>(①基本編のリズム)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="body">単体テストの一覧を事前に出させたくなったら、①基本編のつまずきポイント3を思い出してください。まとめて書かせると、どの失敗がどの原因か分からなくなります。AIに聞いてよいのは「次の1本」の材料だけです: 「このストーリーでまだテストしていない境界値は?」</p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">5-5</span><h2>卒業チェック: 3問</h2></div>
+  <details class="quiz"><summary>Q1. AIに総合テストを書かせるとき、最初に出させるものは?</summary><p><b>テストケースの一覧表です。</b>コードではありません。人間は表の数を母数(シナリオ数)と突き合わせ、承認してからコード化させます。</p></details>
+  <details class="quiz"><summary>Q2. 結合テストの母数はどの文書から数える?</summary><p><b>04 基本設計書です。</b>エンドポイント数×代表ケース+スキーマの制約数。02の権限マトリクスと同時利用者数が補助入力になります。</p></details>
+  <details class="quiz"><summary>Q3. 単体テストも一覧表で検収する?</summary><p><b>しません。</b>単体は内側ループで1本ずつ生まれ、検収は毎回のRed確認です。事前に一覧を作らせるのは「一度にたくさん書く」をAIにやらせることになります。</p></details>
+</section>
+
+<div class="pn">
+  <a href="tdd-perspectives.html">← 前へ: ④ 観点編</a>
+  <a href="index.html">ポータルへ戻る →</a>
+</div>
+
+<footer>
+  <span>実務の正本: docs/project/06_test-plan.md「テストの出どころと検収」</span>
+  <span>STD-AIDEV-007 (5/5) ・ REV 1.0 ・ 2026-07-04</span>
+</footer>
+
+</div>
+</body>
+</html>

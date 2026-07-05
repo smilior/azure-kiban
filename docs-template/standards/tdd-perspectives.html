@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>はじめてのTDD ④ 観点編</title>
+<style>
+:root {
+  --paper: #F4F5F1; --card: #FFFFFF; --ink: #1C2622; --muted: #5D6B63;
+  --line: #D9DED6; --line-strong: #2A3630;
+  --red: #C43A2E; --green: #1E7A46; --blue: #2B5FAB;
+  --tint-red: #F7E4E1; --tint-green: #E1EFE6; --tint-blue: #E3EAF5;
+  --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
+  --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", sans-serif;
+  --mono: "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141917; --card: #1D2421; --ink: #E8ECE7; --muted: #96A49B;
+    --line: #303B35; --line-strong: #C6D0C9;
+    --red: #E06A5C; --green: #4DAE7C; --blue: #6E9BD8;
+    --tint-red: #3A2523; --tint-green: #1F332A; --tint-blue: #212B3B;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); font-size: 14.5px; line-height: 2.0; color: var(--ink); background: var(--paper); }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.page { max-width: 880px; margin: 0 auto; padding: 36px 28px 72px; }
+
+.crumb { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--muted); margin-bottom: 22px; }
+.crumb a { color: var(--muted); }
+.crumb a:hover { color: var(--blue); }
+.series { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 30px; }
+.series a { font-size: 12px; padding: 3px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--card); }
+.series a:hover { text-decoration: none; color: var(--ink); }
+.series a.cur { border-color: var(--green); color: var(--green); font-weight: 700; background: var(--tint-green); }
+
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; color: var(--muted); margin-bottom: 14px; }
+h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(24px, 4vw, 34px); letter-spacing: .05em; line-height: 1.5; }
+.doc-lead { margin-top: 10px; color: var(--muted); font-size: 15px; }
+
+section { margin-top: 54px; }
+.sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+.sec-no { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: .1em; white-space: nowrap; }
+h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(19px, 3vw, 24px); letter-spacing: .06em; }
+.sec-head::after { content: ""; flex: 1; border-top: 1px solid var(--line); transform: translateY(-4px); }
+p.body { margin: 10px 0; max-width: 44em; }
+p.body b { font-weight: 700; }
+
+.vps { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+.vp { background: var(--card); border: 1px solid var(--line); padding: 16px 20px 12px; }
+.vp .no { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--red); letter-spacing: .1em; }
+.vp h3 { font-size: 14.5px; font-weight: 700; margin: 2px 0 6px; }
+.vp p { font-size: 12.5px; color: var(--muted); line-height: 1.9; }
+.vp p b { color: var(--ink); }
+.vp .ex { display: block; margin-top: 6px; font-size: 12px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 6px; }
+.vp .ex::before { content: "例: "; font-family: var(--mono); font-size: 10px; color: var(--green); }
+@media (max-width: 720px) { .vps { grid-template-columns: 1fr; } }
+
+figure.fig { background: var(--card); border: 1px solid var(--line); padding: 18px 16px 12px; margin: 18px 0; overflow-x: auto; }
+figure.fig svg { display: block; width: 100%; height: auto; min-width: 680px; font-family: var(--sans); }
+figure.fig figcaption { font-size: 12px; color: var(--muted); margin-top: 6px; padding: 10px 6px 0; border-top: 1px solid var(--line); line-height: 1.8; }
+figure.fig figcaption .fno { font-family: var(--mono); color: var(--red); margin-right: 8px; }
+.dgm .chip { fill: var(--card); stroke: var(--line-strong); stroke-width: 1.2; }
+.dgm .lv { fill: var(--card); stroke: var(--line-strong); stroke-width: 1.3; }
+.dgm .lv1 { fill: var(--tint-green); stroke: var(--green); }
+.dgm .lv2 { fill: var(--tint-blue); stroke: var(--blue); }
+.dgm .lv3 { fill: var(--tint-red); stroke: var(--red); }
+.dgm .main { font-size: 13px; font-weight: 700; fill: var(--ink); }
+.dgm .sub { font-size: 10px; fill: var(--muted); }
+.dgm .cl { font-size: 12px; font-weight: 600; fill: var(--ink); }
+.dgm .flow { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+.half { background: var(--card); border: 1px solid var(--line); padding: 14px 18px 10px; }
+.half.in { border-top: 3px solid var(--green); }
+.half.out { border-top: 3px solid var(--red); }
+.half h3 { font-size: 13.5px; font-weight: 700; margin-bottom: 6px; }
+.half ul { list-style: none; }
+.half li { font-size: 12.5px; color: var(--muted); padding: 5px 0 5px 18px; border-bottom: 1px dashed var(--line); position: relative; line-height: 1.8; }
+.half li:last-child { border-bottom: none; }
+.half.in li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+.half.out li::before { content: "✕"; position: absolute; left: 0; color: var(--red); font-weight: 700; }
+@media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }
+
+.habit { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--green); padding: 12px 18px; margin: 12px 0; font-size: 13px; }
+.habit .l { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--green); display: block; margin-bottom: 2px; }
+.habit b { font-weight: 700; }
+.habit code { font-family: var(--mono); font-size: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 3px; padding: 0 6px; }
+
+details.quiz { background: var(--card); border: 1px solid var(--line); padding: 12px 18px; margin: 10px 0; }
+details.quiz summary { cursor: pointer; font-weight: 700; font-size: 13.5px; }
+details.quiz p { font-size: 13px; color: var(--muted); margin-top: 8px; }
+details.quiz p b { color: var(--green); }
+
+.pn { display: flex; justify-content: space-between; gap: 12px; margin-top: 56px; flex-wrap: wrap; }
+.pn a { font-size: 13px; font-weight: 600; padding: 10px 18px; border: 1px solid var(--line); background: var(--card); }
+.pn a:hover { text-decoration: none; border-color: var(--green); }
+
+footer { margin-top: 48px; padding-top: 18px; border-top: 1.5px solid var(--line-strong); font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .06em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<nav class="crumb"><a href="index.html">← ポータル</a><span>問い合わせ: 情報システム(m_nakagawa@smilior.com)</span></nav>
+<nav class="series">
+  <a href="tdd-basics.html">① 基本編</a>
+  <a href="tdd-modification.html">② 改修編</a>
+  <a href="tdd-levels.html">③ レベル編</a>
+  <a class="cur" href="tdd-perspectives.html">④ 観点編</a>
+  <a href="tdd-inspection.html">⑤ 検収編</a>
+</nav>
+
+<header>
+  <div class="eyebrow">TDD FOR BEGINNERS 4/5 ・ STD-AIDEV-007</div>
+  <h1>はじめてのTDD ④ 観点編</h1>
+  <p class="doc-lead">何をテストするか。最低限の6観点と、テストを腐らせない5つの習慣です。</p>
+</header>
+
+<section>
+  <div class="sec-head"><span class="sec-no">4-1</span><h2>最低限の6観点</h2></div>
+  <p class="body">テスト観点とは「どの角度から壊しに行くか」の一覧です。この6つを機能ごとに確認すれば、社内システムの事故の大半を先回りできます。網羅チェックはAIに「この6観点で抜けているケースを挙げて」と聞くのが速く、人間は取捨選択だけやります。</p>
+  <div class="vps">
+    <div class="vp"><span class="no">1 ─ 正常系</span><h3>仕様どおりに動く</h3><p>受け入れ条件(Given=前提 / When=操作 / Then=期待する結果)をそのまま写せばテストになります。土台ですが、<b>ここだけで満足しない</b>こと。</p><span class="ex">備品を検索して借りられる</span></div>
+    <div class="vp"><span class="no">2 ─ 境界値</span><h3>端を狙う</h3><p>0・1・上限・上限+1、月末・年度末・0時前後。<b>バグは範囲の真ん中ではなく端に住んでいます。</b>数直線を書いて境目に丸を付けるのが作り方です。</p><span class="ex">在庫0で借りる / 貸出上限ちょうど / 締め日の23:59</span></div>
+    <div class="vp"><span class="no">3 ─ 異常系</span><h3>わざと壊しに行く</h3><p>入力の不正(未入力・型違い)、状態の不正(削除済みIDへの操作)、環境の故障(DB断)。確認するのは<b>「安全に止まり、分かるメッセージが出ること」</b>です。</p><span class="ex">必須未入力 / 存在しないID / DB接続断のときの表示</span></div>
+    <div class="vp"><span class="no">4 ─ 権限</span><h3>「できない」が本当にできない</h3><p>ボタンが見えないだけでは不十分。<b>URLを直接叩いても、APIを直接呼んでも拒否されるか</b>まで見ます。権限マトリクスの×印を1個ずつテストに変えます。</p><span class="ex">一般社員が承認画面のURLを直接開いたら拒否される</span></div>
+    <div class="vp"><span class="no">5 ─ 同時・二重</span><h3>同時に使う現実を再現する</h3><p>2人が同じデータを同時に更新したら?登録ボタンを連打したら?<b>Excel台帳のWeb化では、同時編集できなかった世界から来る利用者が想像していない事故</b>が全部ここに出ます。</p><span class="ex">同じ備品を2人が同時に借りる / 連打で2件できない</span></div>
+    <div class="vp"><span class="no">6 ─ 整合性</span><h3>合計の帳尻が合う</h3><p>「貸出+在庫=総数」のような<b>不変の等式</b>を決め、どの操作の後でも成立するかを見ます。この等式1本が、他のバグも巻き添えで検出してくれます。</p><span class="ex">締め処理の前後で合計金額が一致する</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">4-2</span><h2>観点ごとの主担当レベル</h2></div>
+  <p class="body">6観点は全レベル共通ですが、<b>「どのレベルで検証するか」の主担当</b>が決まっています。全観点を全レベルでやると重複してピラミッドが崩れるため、いちばん安く確実に検証できる場所に置きます。</p>
+
+  <figure class="fig">
+  <svg class="dgm" viewBox="0 0 960 380" role="img" aria-label="観点の振り分けマップ。境界値と入力異常は単体へ、状態・環境異常と権限と同時二重と整合性は結合へ、総合には代表だけが昇格">
+    <defs>
+      <marker id="tp" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 Z" fill="var(--muted)"/></marker>
+    </defs>
+    <text x="480" y="26" text-anchor="middle" class="sub">正常系は全レベルで役割分担(単体=計算ロジック / 結合=API・DBの契約 / 総合=業務フロー)なので、この図からは省いています</text>
+
+    <g><rect x="60" y="44" width="190" height="38" rx="19" class="chip"/><text x="155" y="68" text-anchor="middle" class="cl">境界値</text></g>
+    <g><rect x="60" y="98" width="190" height="38" rx="19" class="chip"/><text x="155" y="122" text-anchor="middle" class="cl">異常系(入力の不正)</text></g>
+    <g><rect x="60" y="152" width="190" height="38" rx="19" class="chip"/><text x="155" y="176" text-anchor="middle" class="cl">異常系(状態・環境)</text></g>
+    <g><rect x="60" y="206" width="190" height="38" rx="19" class="chip"/><text x="155" y="230" text-anchor="middle" class="cl">権限</text></g>
+    <g><rect x="60" y="260" width="190" height="38" rx="19" class="chip"/><text x="155" y="284" text-anchor="middle" class="cl">同時・二重</text></g>
+    <g><rect x="60" y="314" width="190" height="38" rx="19" class="chip"/><text x="155" y="338" text-anchor="middle" class="cl">整合性</text></g>
+
+    <line x1="250" y1="63" x2="616" y2="80" class="flow" marker-end="url(#tp)"/>
+    <line x1="250" y1="117" x2="616" y2="105" class="flow" marker-end="url(#tp)"/>
+    <line x1="250" y1="171" x2="616" y2="185" class="flow" marker-end="url(#tp)"/>
+    <line x1="250" y1="225" x2="616" y2="205" class="flow" marker-end="url(#tp)"/>
+    <line x1="250" y1="279" x2="616" y2="225" class="flow" marker-end="url(#tp)"/>
+    <line x1="250" y1="333" x2="616" y2="245" class="flow" marker-end="url(#tp)"/>
+
+    <g>
+      <rect x="620" y="52" width="300" height="86" rx="6" class="lv lv1"/>
+      <text x="770" y="80" text-anchor="middle" class="main">単体 ─ 数で勝負する観点</text>
+      <text x="770" y="100" text-anchor="middle" class="sub">パターン網羅を秒で回す。</text>
+      <text x="770" y="116" text-anchor="middle" class="sub">境界値の0・1・上限±1はここで全部つぶす</text>
+    </g>
+    <g>
+      <rect x="620" y="158" width="300" height="98" rx="6" class="lv lv2"/>
+      <text x="770" y="186" text-anchor="middle" class="main">結合 ─ 実物が必要な観点</text>
+      <text x="770" y="206" text-anchor="middle" class="sub">本物のDB・APIでしか確認できないもの。</text>
+      <text x="770" y="222" text-anchor="middle" class="sub">ロック・一意制約・権限のAPI直叩き・</text>
+      <text x="770" y="238" text-anchor="middle" class="sub">合計の等式はここ</text>
+    </g>
+    <g>
+      <rect x="620" y="276" width="300" height="84" rx="6" class="lv lv3"/>
+      <text x="770" y="304" text-anchor="middle" class="main">総合 ─ 代表1ケースずつ</text>
+      <text x="770" y="324" text-anchor="middle" class="sub">パターン網羅の場ではない。</text>
+      <text x="770" y="340" text-anchor="middle" class="sub">各観点の代表だけがここへ昇格する</text>
+    </g>
+  </svg>
+  <figcaption><span class="fno">図 1</span>観点の振り分けマップ。迷ったら「フェイクDBで検証できるか?」— できる=単体、できない=結合、業務の流れ全体=総合。</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">4-3</span><h2>総合テストは何を入れて、何を入れないか</h2></div>
+  <p class="body">総合は正常系だけではありません。<b>各観点の「代表」を含みます</b>。選抜基準は2つ: ①画面でしか確認できないか(エラーメッセージの見え方・ボタンの無効化) ②起きたら業務が止まるか・お金が絡むか。</p>
+  <div class="pair">
+    <div class="half in"><h3>入れる</h3>
+      <ul>
+        <li>ストーリーごとの主要フロー(ゴールの旗)</li>
+        <li>利用者が日常的に踏む異常の代表(必須未入力のエラー表示、在庫0でボタンが押せない)</li>
+        <li>権限の代表1本(一般社員に承認メニューが出ない)</li>
+        <li>二重送信の代表1本(連打で1件しかできない)</li>
+        <li>業務のクリティカルな等式1本(締め処理)</li>
+      </ul>
+    </div>
+    <div class="half out"><h3>入れない</h3>
+      <ul>
+        <li>境界値の網羅(0・1・上限±1は単体で済んでいる)</li>
+        <li>異常系の全パターン</li>
+        <li>権限マトリクスの全組み合わせ(結合で済んでいる)</li>
+        <li>性能・見た目の細部(別の活動で扱う)</li>
+      </ul>
+    </div>
+  </div>
+  <p class="body">実務はシンプルで、<b>要件定義書の受け入れ条件に書いたシナリオが、そのまま総合テストの全量</b>です。受け入れ条件には正常系と異常系の両方を書くルールにしてあるので、あれを全部E2E化すればちょうど「代表が選抜された状態」になります。</p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">4-4</span><h2>テストを腐らせない5つの習慣</h2></div>
+  <p class="body">観点表に載らない運用のルールです。放置するとテスト資産そのものが信用を失います。</p>
+  <div class="habit"><span class="l">HABIT 1 ─ 最優先</span><b>時刻を直接使わない。</b>コード内で現在時刻を取ると、締め日・月末のテストが「その日まで待つ」ことになります。時刻は外から渡す作りにして、テストでは <code>2026-03-31 23:59</code> を注入します。後から直すのが高くつく筆頭です。</div>
+  <div class="habit"><span class="l">HABIT 2</span><b>テスト名は仕様文で書く。</b><code>test1</code> ではなく「在庫0の備品は借りられない」。落ちたとき名前だけで何が壊れたか分かり、テスト一覧がそのまま仕様書の目次になります。</div>
+  <div class="habit"><span class="l">HABIT 3</span><b>テストの中にロジックを書かない。</b>if文やループが増えたら黄信号。「準備 → 実行 → 確認」の3段を上から素直に書きます。賢いテストより馬鹿正直なテストが正解です。</div>
+  <div class="habit" style="border-left-color: var(--red);"><span class="l" style="color: var(--red);">HABIT 4 ─ 最優先</span><b>赤いテストを1本も放置しない。</b>「あれは前から落ちてるやつ」を1本許すと、全部の赤が信号無視になります。CIが赤ならマージ禁止。直せないなら理由付きで無効化してIssue化し、「赤=必ず誰かが動く」を守ります。</div>
+  <div class="habit"><span class="l">HABIT 5</span><b>カバレッジの数字を目標にしない。</b>100%でも確認(assert)がなければ無意味です。目標は観点表の消し込み。カバレッジは「テストが抜けている場所を探す地図」としてだけ使います。</div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">4-5</span><h2>卒業チェック: 3問</h2></div>
+  <details class="quiz"><summary>Q1. 境界値のテストは、どのレベルに置く?</summary><p><b>単体です。</b>0・1・上限±1のパターン網羅は数が多いので、秒で回るレベルに置きます。E2Eで境界値を網羅すると遅くて崩壊します。</p></details>
+  <details class="quiz"><summary>Q2. 総合テストに異常系は入れる?</summary><p><b>入れます。ただし代表だけ。</b>「必須未入力でエラーメッセージが画面に出る」のような、画面でしか確認できないものを1〜2本。パターン網羅は単体・結合の仕事です。</p></details>
+  <details class="quiz"><summary>Q3. カバレッジ90%は良い目標?</summary><p><b>目標にはしません。</b>assertのないテストでも数字は上がるからです。目標は観点表の消し込みで、カバレッジは抜けている場所を探す地図として使います。</p></details>
+</section>
+
+<div class="pn">
+  <a href="tdd-levels.html">← 前へ: ③ レベル編</a>
+  <a href="tdd-inspection.html">次へ: ⑤ 検収編 →</a>
+</div>
+
+<footer>
+  <span>規範: <a href="ai-driven-dev-lifecycle.html">ライフサイクル標準 §5</a> ・ 観点表の雛形: docs/project/06_test-plan.md</span>
+  <span>STD-AIDEV-007 (4/5) ・ REV 1.0 ・ 2026-07-04</span>
+</footer>
+
+</div>
+</body>
+</html>

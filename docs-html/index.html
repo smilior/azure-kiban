@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azureアプリ公開基盤 文書一覧</title>
+<style>
+:root {
+  --paper: #eef1f4;
+  --sheet: #ffffff;
+  --ink: #182635;
+  --sub: #5b6b7c;
+  --line: #d5dde4;
+  --line-strong: #9fb0c0;
+  --azure: #0d6fbe;
+  --azure-soft: #e3f0fa;
+  --teal: #0e7a6e;
+  --teal-soft: #dff2ef;
+  --slate: #5f6f80;
+  --slate-soft: #e8edf1;
+  --warn: #a34d0c;
+  --warn-soft: #f8ede1;
+  --mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic Medium", "Yu Gothic", "Meiryo", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0d1520;
+    --sheet: #141f2d;
+    --ink: #dce6f1;
+    --sub: #8fa1b5;
+    --line: #283a4e;
+    --line-strong: #3d5570;
+    --azure: #5aa7e6;
+    --azure-soft: #16293c;
+    --teal: #4cc2b4;
+    --teal-soft: #12312d;
+    --slate: #9fb0c1;
+    --slate-soft: #1e2c3c;
+    --warn: #e09a5a;
+    --warn-soft: #33241a;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.75;
+  font-size: 15px;
+  font-feature-settings: "palt";
+}
+.sheet {
+  max-width: 920px;
+  margin: 32px auto 64px;
+  background: var(--sheet);
+  border: 1px solid var(--line-strong);
+}
+.titleblock { display: flex; border-bottom: 2px solid var(--ink); }
+.tb-spine {
+  writing-mode: vertical-rl;
+  font-size: 11px;
+  letter-spacing: 0.35em;
+  color: var(--sub);
+  border-right: 1px solid var(--line);
+  padding: 16px 8px;
+  text-align: center;
+  flex: none;
+}
+.tb-main { flex: 1; padding: 28px 32px 24px; min-width: 0; }
+.tb-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--azure);
+  margin-bottom: 6px;
+}
+h1 { font-size: 26px; font-weight: 800; letter-spacing: 0.02em; line-height: 1.4; }
+.lead { font-size: 13px; color: var(--sub); margin-top: 8px; }
+.lead code {
+  font-family: var(--mono); font-size: 12px;
+  background: var(--slate-soft); padding: 1px 5px; border-radius: 3px;
+}
+
+/* フェーズレール */
+.rail { display: flex; align-items: flex-start; margin: 26px 0 4px; }
+.rail-step { flex: 1; text-align: center; position: relative; }
+.rail-step::before {
+  content: "";
+  position: absolute;
+  top: 7px; left: 50%; width: 100%; height: 2px;
+  background: var(--line);
+}
+.rail-step:last-child::before { display: none; }
+.rail-dot {
+  position: relative; z-index: 1;
+  display: inline-block;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--sheet);
+  border: 2px solid var(--line-strong);
+}
+.rail-step.done .rail-dot { background: var(--azure); border-color: var(--azure); }
+.rail-step.next .rail-dot { border-color: var(--azure); border-style: dashed; }
+.rail-step.done::before { background: var(--azure); }
+.rail-label { font-size: 11.5px; color: var(--sub); margin-top: 4px; }
+.rail-step.done .rail-label { color: var(--ink); font-weight: 700; }
+.rail-step.next .rail-label { color: var(--azure); font-weight: 700; }
+.rail-note { font-family: var(--mono); font-size: 10px; color: var(--azure); }
+
+/* 文書台帳 */
+main { padding: 8px 32px 40px; }
+h2 {
+  font-size: 17px; font-weight: 800; letter-spacing: 0.04em;
+  padding-bottom: 8px; border-bottom: 2px solid var(--ink);
+  margin: 40px 0 0;
+}
+.ledger { border: 1px solid var(--line); border-top: none; }
+.doc {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+}
+.doc:last-child { border-bottom: none; }
+a.doc:hover, a.doc:focus-visible { background: var(--azure-soft); }
+a.doc:focus-visible { outline: 2px solid var(--azure); outline-offset: -2px; }
+.doc-no {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--azure);
+  flex: none;
+  width: 30px;
+}
+.doc-body { flex: 1; min-width: 0; }
+.doc-title { font-size: 15px; font-weight: 700; }
+a.doc .doc-title { color: var(--azure); }
+.doc-desc { font-size: 12.5px; color: var(--sub); }
+.doc-date { font-family: var(--mono); font-size: 11px; color: var(--sub); flex: none; }
+.badge {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 1px 10px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.b-pub { color: var(--azure); border-color: var(--azure); background: var(--azure-soft); }
+.b-md { color: var(--teal); border-color: var(--teal); background: var(--teal-soft); }
+.b-plan { color: var(--slate); border-color: var(--line-strong); background: none; border-style: dashed; }
+.b-wip { color: var(--warn); border-color: var(--warn); background: var(--warn-soft); }
+.doc.plan .doc-title, .doc.plan .doc-no { color: var(--sub); font-weight: 400; }
+
+footer {
+  border-top: 2px solid var(--ink);
+  padding: 14px 32px;
+  font-size: 11.5px;
+  color: var(--sub);
+  font-family: var(--mono);
+}
+@media (max-width: 640px) {
+  .tb-spine { display: none; }
+  main { padding-left: 18px; padding-right: 18px; }
+  .tb-main { padding: 20px 18px 16px; }
+  .sheet { margin: 0 0 40px; border-left: none; border-right: none; }
+  .doc { flex-wrap: wrap; gap: 8px 12px; }
+  .rail-label { font-size: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header class="titleblock">
+  <div class="tb-spine">社内閉域網・検証フェーズ</div>
+  <div class="tb-main">
+    <p class="tb-eyebrow">PROJECT DOCS</p>
+    <h1>Azureアプリ公開基盤 文書一覧</h1>
+    <p class="lead">AI駆動開発で構築したアプリをAzure上の社内閉域網で公開する基盤(静的・動的の2基盤)の案件書類。正本は <code>docs/project/</code> のMarkdown、本サイトは閲覧用の配布物。</p>
+    <div class="rail" aria-label="フェーズ進行">
+      <div class="rail-step done"><span class="rail-dot"></span><div class="rail-label">企画</div></div>
+      <div class="rail-step done"><span class="rail-dot"></span><div class="rail-label">要件定義</div></div>
+      <div class="rail-step next"><span class="rail-dot"></span><div class="rail-label">基本設計<div class="rail-note">← 次</div></div></div>
+      <div class="rail-step"><span class="rail-dot"></span><div class="rail-label">開発</div></div>
+      <div class="rail-step"><span class="rail-dot"></span><div class="rail-label">テスト</div></div>
+      <div class="rail-step"><span class="rail-dot"></span><div class="rail-label">リリース</div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <h2>文書台帳</h2>
+  <div class="ledger">
+    <a class="doc" href="01_prd.html">
+      <span class="doc-no">01</span>
+      <span class="doc-body">
+        <span class="doc-title">企画書</span><br>
+        <span class="doc-desc">目的・ゴール・現状の課題・効果見込み・概算費用(予算20万円/6か月)</span>
+      </span>
+      <span class="badge b-pub">公開</span>
+      <span class="doc-date">2026-07-05</span>
+    </a>
+    <a class="doc" href="02_requirements.html">
+      <span class="doc-no">02</span>
+      <span class="doc-body">
+        <span class="doc-title">要件定義書</span><br>
+        <span class="doc-desc">9ストーリー・23シナリオ(受け入れ条件)・検証2段階・非機能要件・業務フロー</span>
+      </span>
+      <span class="badge b-pub">公開</span>
+      <span class="doc-date">2026-07-05</span>
+    </a>
+    <div class="doc">
+      <span class="doc-no">03</span>
+      <span class="doc-body">
+        <span class="doc-title">用語集</span><br>
+        <span class="doc-desc">静的基盤・動的基盤・共有基盤ほか21語。正本(Markdown)のみ、HTML未作成</span>
+      </span>
+      <span class="badge b-md">正本のみ</span>
+      <span class="doc-date">2026-07-05</span>
+    </div>
+    <div class="doc plan">
+      <span class="doc-no">04</span>
+      <span class="doc-body">
+        <span class="doc-title">基本設計書(ADR・構成図・API仕様)</span><br>
+        <span class="doc-desc">Azureサービス選定を基盤別のADRで記録する。次フェーズで作成</span>
+      </span>
+      <span class="badge b-plan">予定</span>
+      <span class="doc-date">-</span>
+    </div>
+    <div class="doc plan">
+      <span class="doc-no">05</span>
+      <span class="doc-body">
+        <span class="doc-title">画面設計</span><br>
+        <span class="doc-desc">画面一覧・遷移図。本案件は画面が少ないため要否を含めて設計時に判断</span>
+      </span>
+      <span class="badge b-plan">予定</span>
+      <span class="doc-date">-</span>
+    </div>
+    <div class="doc plan">
+      <span class="doc-no">06</span>
+      <span class="doc-body">
+        <span class="doc-title">テスト計画書</span><br>
+        <span class="doc-desc">US-XX-Sn の受け入れ条件を正本にテストを配分する(単体7:結合2:総合1)</span>
+      </span>
+      <span class="badge b-plan">予定</span>
+      <span class="doc-date">-</span>
+    </div>
+    <div class="doc plan">
+      <span class="doc-no">07</span>
+      <span class="doc-body">
+        <span class="doc-title">操作マニュアル</span><br>
+        <span class="doc-desc">基盤テンプレートの利用手順(アプリ公開の手引き)。リリース準備で作成</span>
+      </span>
+      <span class="badge b-plan">予定</span>
+      <span class="doc-date">-</span>
+    </div>
+    <a class="doc" href="adr-0001.html">
+      <span class="doc-no">A-1</span>
+      <span class="doc-body">
+        <span class="doc-title">ADR-0001 環境パターン選定</span><br>
+        <span class="doc-desc">現行構成との対応表・構成要素の選択肢・パターンP0〜P6比較・アーキテクチャ図4枚</span>
+      </span>
+      <span class="badge b-wip">決定待ち</span>
+      <span class="doc-date">2026-07-05</span>
+    </a>
+    <a class="doc" href="adr-0002.html">
+      <span class="doc-no">A-2</span>
+      <span class="doc-body">
+        <span class="doc-title">ADR-0002 認証方式の選定(Easy Auth + Entra ID)</span><br>
+        <span class="doc-desc">ログインの流れ図・セッション/トークン管理(Redis不要の理由)・Graph API連携の2方式</span>
+      </span>
+      <span class="badge b-pub">決定済み</span>
+      <span class="doc-date">2026-07-05</span>
+    </a>
+    <div class="doc plan">
+      <span class="doc-no">付録</span>
+      <span class="doc-body">
+        <span class="doc-title">PoC記録・Runbook</span><br>
+        <span class="doc-desc">検証ログ、リリース手順・障害対応。随時追加</span>
+      </span>
+      <span class="badge b-plan">予定</span>
+      <span class="doc-date">-</span>
+    </div>
+  </div>
+</main>
+
+<footer>
+  正本: docs/project/*.md | HTMLは配布物。編集はMarkdown側で行う | 2026-07-05
+</footer>
+
+</div>
+</body>
+</html>

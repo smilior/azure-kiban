@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>システムづくりへの協力ガイド</title>
+<style>
+:root {
+  --paper: #F4F5F1; --card: #FFFFFF; --ink: #1C2622; --muted: #5D6B63;
+  --line: #D9DED6; --line-strong: #2A3630;
+  --red: #C43A2E; --green: #1E7A46; --blue: #2B5FAB;
+  --tint-green: #E1EFE6; --tint-blue: #E3EAF5;
+  --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
+  --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", sans-serif;
+  --mono: "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141917; --card: #1D2421; --ink: #E8ECE7; --muted: #96A49B;
+    --line: #303B35; --line-strong: #C6D0C9;
+    --red: #E06A5C; --green: #4DAE7C; --blue: #6E9BD8;
+    --tint-green: #1F332A; --tint-blue: #212B3B;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); font-size: 14.5px; line-height: 2.0; color: var(--ink); background: var(--paper); }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.page { max-width: 880px; margin: 0 auto; padding: 36px 28px 72px; }
+
+.crumb { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--muted); margin-bottom: 34px; }
+.crumb a { color: var(--muted); }
+.crumb a:hover { color: var(--blue); }
+
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; color: var(--muted); margin-bottom: 14px; }
+h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(24px, 4vw, 34px); letter-spacing: .05em; line-height: 1.5; }
+.doc-lead { margin-top: 10px; color: var(--muted); font-size: 15px; }
+
+.wh { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 36px; }
+.w { background: var(--card); border: 1px solid var(--line); padding: 16px 20px 12px; }
+.w .tag { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; color: var(--red); }
+.w h3 { font-size: 14.5px; font-weight: 700; margin: 2px 0 6px; }
+.w p { font-size: 12.5px; color: var(--muted); line-height: 1.9; }
+.w p b { color: var(--ink); }
+@media (max-width: 720px) { .wh { grid-template-columns: 1fr; } }
+
+section { margin-top: 56px; }
+.sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+.sec-no { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: .1em; white-space: nowrap; }
+h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(19px, 3vw, 24px); letter-spacing: .06em; }
+.sec-head::after { content: ""; flex: 1; border-top: 1px solid var(--line); transform: translateY(-4px); }
+.sec-intro { margin-bottom: 20px; max-width: 44em; }
+
+figure.fig { background: var(--card); border: 1px solid var(--line); padding: 18px 16px 12px; margin: 18px 0; overflow-x: auto; }
+figure.fig svg { display: block; width: 100%; height: auto; min-width: 680px; font-family: var(--sans); }
+figure.fig figcaption { font-size: 12px; color: var(--muted); margin-top: 6px; padding: 10px 6px 0; border-top: 1px solid var(--line); line-height: 1.8; }
+figure.fig figcaption .fno { font-family: var(--mono); color: var(--red); margin-right: 8px; }
+.dgm .box { fill: var(--card); stroke: var(--line-strong); stroke-width: 1.2; }
+.dgm .you { fill: var(--tint-green); stroke: var(--green); stroke-width: 1.6; }
+.dgm .main { font-size: 12.5px; font-weight: 600; fill: var(--ink); }
+.dgm .sub { font-size: 10px; fill: var(--muted); }
+.dgm .lane { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); letter-spacing: .1em; }
+.dgm .head { font-family: var(--mono); font-size: 10px; fill: var(--muted); letter-spacing: .06em; }
+.dgm .pass { stroke: var(--green); stroke-width: 1.6; fill: none; }
+
+h3.how { font-size: 15px; font-weight: 700; margin: 30px 0 10px; padding-left: 12px; border-left: 3px solid var(--green); }
+p.body { margin: 10px 0; }
+.ex { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--green); padding: 12px 18px; margin: 12px 0; font-size: 13px; }
+.ex .l { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--green); display: block; margin-bottom: 2px; }
+.ex.ng { border-left-color: var(--red); }
+.ex.ng .l { color: var(--red); }
+ul.plain { list-style: none; margin: 10px 0; }
+ul.plain li { padding: 8px 0 8px 20px; border-bottom: 1px dashed var(--line); position: relative; font-size: 13.5px; }
+ul.plain li::before { content: "▪"; position: absolute; left: 2px; color: var(--green); font-size: 11px; }
+ul.plain li b { font-weight: 700; }
+
+footer { margin-top: 64px; padding-top: 18px; border-top: 1.5px solid var(--line-strong); font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .06em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<nav class="crumb"><a href="index.html">← ポータル</a><span>問い合わせ: 情報システム(m_nakagawa@smilior.com)</span></nav>
+
+<header>
+  <div class="eyebrow">FOR BUSINESS USERS ・ STD-AIDEV-005</div>
+  <h1>システムづくりへの協力ガイド</h1>
+  <p class="doc-lead">お願いしたいことは3つだけです。あなたの回答が、そのまま設計図になります。</p>
+</header>
+
+<div class="wh">
+  <div class="w"><span class="tag">WHY ─ なぜ</span><h3>業務を知っているのはあなただからです</h3>
+    <p>システムは業務の写し絵です。<b>あなたの回答が画面と機能の設計図になります。</b>推測で作ると、現場で使えないものができあがります。</p></div>
+  <div class="w"><span class="tag">WHO ─ だれが</span><h3>対象はシステム化する業務の担当の方</h3>
+    <p>窓口は情報システム担当です。質問リストや画面案はAIが下書きし、情シスが整えてからお渡しします。<b>専門知識は必要ありません。</b></p></div>
+  <div class="w"><span class="tag">WHAT ─ なにを</span><h3>お願いは3つです</h3>
+    <p>① 質問リストへの回答 ② 画面案の確認 ③ リリース前の動作確認(受入確認)。<b>この3つ以外の期間は、何もしなくて大丈夫です。</b></p></div>
+  <div class="w"><span class="tag">WHEN ─ いつ</span><h3>出番は3回、1回15〜60分です</h3>
+    <p>① 要件を決めるとき(15〜30分) ② 画面を決めるとき(15分) ③ リリース前(30〜60分)。時期は事前にご相談します。</p></div>
+  <div class="w"><span class="tag">WHERE ─ どこで</span><h3>回答はメールかチャットで結構です</h3>
+    <p>書式は問いません。関連する文書は<a href="index.html">ポータル</a>から見られますが、<b>読まなくても協力に支障はありません。</b></p></div>
+  <div class="w"><span class="tag">HOW ─ どうやって</span><h3>やり方は下の3節にまとめました</h3>
+    <p>質問への答え方 ・ 画面案の見方 ・ 動作確認のやり方。それぞれ<b>良い例</b>を付けています。</p></div>
+</div>
+
+<section>
+  <div class="sec-head"><span class="sec-no">図解</span><h2>あなたの出番は3回だけ</h2></div>
+  <figure class="fig">
+  <svg class="dgm" viewBox="0 0 960 300" role="img" aria-label="タイムライン。利用部門の出番は要件・画面・リリース前の3回で、開発中は出番なし">
+    <defs>
+      <marker id="mc" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 Z" fill="var(--green)"/></marker>
+    </defs>
+    <text x="39" y="52" class="head">要件を決める</text>
+    <text x="217" y="52" class="head">画面を決める</text>
+    <text x="395" y="52" class="head">つくる(数週間)</text>
+    <text x="573" y="52" class="head">リリース前</text>
+    <text x="751" y="52" class="head">利用開始</text>
+
+    <text x="39" y="86" class="lane">あなた</text>
+    <g><rect x="39" y="96" width="170" height="54" rx="4" class="you"/><text x="124" y="118" text-anchor="middle" class="main">質問に答える</text><text x="124" y="136" text-anchor="middle" class="sub">15〜30分</text></g>
+    <g><rect x="217" y="96" width="170" height="54" rx="4" class="you"/><text x="302" y="118" text-anchor="middle" class="main">画面案を見る</text><text x="302" y="136" text-anchor="middle" class="sub">15分</text></g>
+    <text x="480" y="126" text-anchor="middle" class="sub">出番なし(お待ちください)</text>
+    <g><rect x="573" y="96" width="170" height="54" rx="4" class="you"/><text x="658" y="118" text-anchor="middle" class="main">動作確認(UAT)</text><text x="658" y="136" text-anchor="middle" class="sub">30〜60分</text></g>
+    <g><rect x="751" y="96" width="170" height="54" rx="4" class="box"/><text x="836" y="118" text-anchor="middle" class="main">使いはじめる</text><text x="836" y="136" text-anchor="middle" class="sub">案内とマニュアル付き</text></g>
+
+    <line x1="124" y1="150" x2="124" y2="192" class="pass" marker-end="url(#mc)"/>
+    <line x1="302" y1="150" x2="302" y2="192" class="pass" marker-end="url(#mc)"/>
+    <line x1="658" y1="150" x2="658" y2="192" class="pass" marker-end="url(#mc)"/>
+
+    <text x="39" y="186" class="lane">情報システム+AI</text>
+    <g><rect x="39" y="196" width="170" height="54" rx="4" class="box"/><text x="124" y="218" text-anchor="middle" class="main">質問リストを作る</text><text x="124" y="236" text-anchor="middle" class="sub">回答を要件にまとめる</text></g>
+    <g><rect x="217" y="196" width="170" height="54" rx="4" class="box"/><text x="302" y="218" text-anchor="middle" class="main">画面案を作る</text><text x="302" y="236" text-anchor="middle" class="sub">ご意見を反映する</text></g>
+    <g><rect x="395" y="196" width="170" height="54" rx="4" class="box"/><text x="480" y="218" text-anchor="middle" class="main">作る・テストする</text><text x="480" y="236" text-anchor="middle" class="sub">AIが実装・情シスが確認</text></g>
+    <g><rect x="573" y="196" width="170" height="54" rx="4" class="box"/><text x="658" y="218" text-anchor="middle" class="main">指摘を直す</text><text x="658" y="236" text-anchor="middle" class="sub">NGはすべて対応します</text></g>
+    <g><rect x="751" y="196" width="170" height="54" rx="4" class="box"/><text x="836" y="218" text-anchor="middle" class="main">サポート</text><text x="836" y="236" text-anchor="middle" class="sub">困ったら連絡ください</text></g>
+
+    <rect x="39" y="272" width="12" height="12" rx="2" class="you"/>
+    <text x="60" y="283" class="sub">= あなたにお願いする場面(合計3回)。矢印はいただいた回答が次の作業の材料になることを示します。</text>
+  </svg>
+  <figcaption><span class="fno">図 1</span>全体の流れとあなたの出番。緑の3回以外は情報システム側で進みます。</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">HOW 1</span><h2>質問への答え方</h2></div>
+  <ul class="plain">
+    <li><b>「普段どうしているか」をそのまま書いてください。</b>正しい書き方や専門用語は不要です。</li>
+    <li><b>例外こそ教えてください。</b>「部長が借りるときだけ台帳に書かない」のような運用が、設計を左右します。</li>
+    <li><b>わからないときは「わからない」「人による」とそのまま書いてください。</b>いちばん困るのは、推測で埋めた回答です。</li>
+  </ul>
+  <div class="ex"><span class="l">GOOD ─ 良い回答の例</span>「返却が遅れたら、3日後に総務からメールしています。ただし役員にはメールせず口頭です。理由は特にありません、昔からの慣習です。」</div>
+  <div class="ex"><span class="l">GOOD ─ わからないときの例</span>「同時に何人使うかはわかりません。多い日で1日20件くらいの貸出があります。」→ 件数だけでも十分な材料になります。</div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">HOW 2</span><h2>画面案の見方</h2></div>
+  <ul class="plain">
+    <li><b>自分の業務がその画面で最後まで終わるか</b>を確認してください。見た目の良し悪しより先に、抜けている手順がないかです。</li>
+    <li>「この場合はどうする?」と思ったら、<b>その疑問をそのまま書いて返してください。</b>疑問の数だけ手戻りが減ります。</li>
+  </ul>
+  <div class="ex"><span class="l">GOOD ─ 指摘の例</span>「貸出画面はこれでいいです。ただ、2個まとめて借りる人が多いのに1個ずつしか選べないように見えます。」</div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">HOW 3</span><h2>動作確認(UAT)のやり方</h2></div>
+  <ul class="plain">
+    <li>お渡しする<b>確認シートのシナリオどおりに操作</b>し、1件ずつ OK / NG を付けてください。</li>
+    <li>NG のときは<b>「何をしたら・何が起きたか」</b>だけ書いてください。原因の推測は不要です。</li>
+    <li>シナリオ外の気づきも歓迎です。「ボタンが小さい」「この順番だと入力しづらい」はそのまま書いてください。</li>
+  </ul>
+  <div class="ex ng"><span class="l">NG報告 ─ 良い書き方の例</span>「在庫0のドライバーセットで『借りる』ボタンが押せました。押した後はエラーも出ませんでした。」</div>
+</section>
+
+<footer>
+  <span>問い合わせ: 情報システム(m_nakagawa@smilior.com)</span>
+  <span>STD-AIDEV-005 ・ REV 1.0 ・ 2026-07-04</span>
+</footer>
+
+</div>
+</body>
+</html>

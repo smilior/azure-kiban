@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+.env
+.playwright-mcp/
+.DS_Store
+.claude/worktrees/

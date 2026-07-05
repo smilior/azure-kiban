@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>実践ガイド ⓪ 立ち上げ編 ─ 乗車券を手に入れるまで</title>
+<style>
+:root {
+  --paper: #F4F5F1; --card: #FFFFFF; --ink: #1C2622; --muted: #5D6B63;
+  --line: #D9DED6; --line-strong: #2A3630;
+  --red: #C43A2E; --green: #1E7A46; --blue: #2B5FAB;
+  --tint-red: #F7E4E1; --tint-green: #E1EFE6; --tint-blue: #E3EAF5;
+  --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
+  --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", sans-serif;
+  --mono: "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141917; --card: #1D2421; --ink: #E8ECE7; --muted: #96A49B;
+    --line: #303B35; --line-strong: #C6D0C9;
+    --red: #E06A5C; --green: #4DAE7C; --blue: #6E9BD8;
+    --tint-red: #3A2523; --tint-green: #1F332A; --tint-blue: #212B3B;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); font-size: 14.5px; line-height: 2.0; color: var(--ink); background: var(--paper); }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.page { max-width: 880px; margin: 0 auto; padding: 36px 28px 72px; }
+
+.crumb { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--muted); margin-bottom: 22px; }
+.crumb a { color: var(--muted); }
+.crumb a:hover { color: var(--blue); }
+.series { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 30px; }
+.series a { font-size: 12px; padding: 3px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--card); }
+.series a:hover { text-decoration: none; color: var(--ink); }
+.series a.cur { border-color: var(--red); color: var(--red); font-weight: 700; background: var(--tint-red); }
+
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; color: var(--muted); margin-bottom: 14px; }
+h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(24px, 4vw, 34px); letter-spacing: .05em; line-height: 1.5; }
+.doc-lead { margin-top: 10px; color: var(--muted); font-size: 15px; }
+
+section { margin-top: 54px; }
+.sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+.sec-no { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: .1em; white-space: nowrap; }
+h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(19px, 3vw, 24px); letter-spacing: .06em; }
+.sec-head::after { content: ""; flex: 1; border-top: 1px solid var(--line); transform: translateY(-4px); }
+p.body { margin: 10px 0; max-width: 44em; }
+p.body b { font-weight: 700; }
+
+figure.fig { background: var(--card); border: 1px solid var(--line); padding: 18px 16px 12px; margin: 18px 0; overflow-x: auto; }
+figure.fig svg { display: block; width: 100%; height: auto; min-width: 700px; font-family: var(--sans); }
+figure.fig figcaption { font-size: 12px; color: var(--muted); margin-top: 6px; padding: 10px 6px 0; border-top: 1px solid var(--line); line-height: 1.8; }
+figure.fig figcaption .fno { font-family: var(--mono); color: var(--red); margin-right: 8px; }
+.dgm .st { fill: var(--tint-green); stroke: var(--green); stroke-width: 2; }
+.dgm .hu { fill: var(--tint-red); stroke: var(--red); stroke-width: 2; }
+.dgm .term { fill: var(--card); stroke: var(--line-strong); stroke-width: 2; }
+.dgm .nm { font-size: 12px; font-weight: 700; fill: var(--ink); }
+.dgm .sub { font-size: 9.5px; fill: var(--muted); }
+.dgm .you { font-size: 11px; font-weight: 700; fill: var(--red); }
+.dgm .ag { font-family: var(--mono); font-size: 10px; fill: var(--green); }
+
+pre.cmd { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--green); padding: 12px 16px; margin: 12px 0; overflow-x: auto; font-family: var(--mono); font-size: 12px; line-height: 1.9; white-space: pre-wrap; }
+ul.prep { list-style: none; margin: 10px 0; }
+ul.prep li { padding: 8px 0 8px 20px; border-bottom: 1px dashed var(--line); position: relative; font-size: 13px; }
+ul.prep li::before { content: "▪"; position: absolute; left: 2px; color: var(--green); font-size: 11px; }
+ul.prep li b { font-weight: 700; }
+
+.station { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--red); padding: 14px 20px 10px; margin: 12px 0; }
+.station .no { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .12em; color: var(--red); }
+.station h3 { font-size: 14.5px; font-weight: 700; margin: 2px 0 4px; }
+.station p { font-size: 13px; color: var(--muted); line-height: 1.9; }
+.station p b { color: var(--ink); }
+
+.ticket { position: relative; display: flex; background: var(--card); border: 1.5px solid var(--line-strong); margin: 22px 0 6px; }
+.ticket::before, .ticket::after { content: ""; position: absolute; left: 57px; width: 16px; height: 16px; background: var(--paper); border: 1.5px solid var(--line-strong); border-radius: 50%; }
+.ticket::before { top: -9px; }
+.ticket::after { bottom: -9px; }
+.ticket .stub { flex: 0 0 64px; display: flex; align-items: center; justify-content: center; border-right: 2px dashed var(--line-strong); }
+.ticket .stub span { writing-mode: vertical-rl; font-family: var(--mono); font-size: 11px; letter-spacing: .35em; color: var(--muted); }
+.ticket .tbody { flex: 1; min-width: 0; padding: 18px 24px 16px; }
+.ticket .t-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; color: var(--muted); }
+.ticket h3 { font-family: var(--serif); font-weight: 600; font-size: 17px; letter-spacing: .05em; margin: 4px 0 2px; }
+.ticket .depart { font-size: 13px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+ul.check { list-style: none; margin: 10px 0 0; }
+ul.check li { padding: 10px 0 10px 30px; border-bottom: 1px dashed var(--line); position: relative; font-size: 13.5px; }
+ul.check li::before { content: "☐"; position: absolute; left: 4px; color: var(--green); font-size: 16px; }
+ul.check li b { font-weight: 700; }
+.ticket ul.check li:last-child { border-bottom: none; }
+@media (hover: hover) { .ticket ul.check li:hover::before { content: "☑"; } }
+
+.pn { display: flex; justify-content: space-between; gap: 12px; margin-top: 56px; flex-wrap: wrap; }
+.pn a { font-size: 13px; font-weight: 600; padding: 10px 18px; border: 1px solid var(--line); background: var(--card); }
+.pn a:hover { text-decoration: none; border-color: var(--red); }
+.pn .ph { visibility: hidden; }
+
+footer { margin-top: 48px; padding-top: 18px; border-top: 1.5px solid var(--line-strong); font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .06em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<nav class="crumb"><a href="index.html">← ポータル</a><span>問い合わせ: 情報システム(m_nakagawa@smilior.com)</span></nav>
+<nav class="series">
+  <a class="cur" href="practice-setup.html">⓪ 立ち上げ編</a>
+  <a href="practice-flow.html">① 流れ編</a>
+  <a href="practice-steps.html">② 手順編</a>
+</nav>
+
+<header>
+  <div class="eyebrow">DRIVER'S GUIDE ⓪ ・ STD-AIDEV-008</div>
+  <h1>実践ガイド ⓪ 立ち上げ編<br>─ 乗車券を手に入れるまで</h1>
+  <p class="doc-lead">案件で1回だけ通る、複製から設計承認までの道。①②とは逆に、ここは赤い駅ばかりです。あなたの承認が5つ揃うと乗車券になります。</p>
+</header>
+
+<section>
+  <div class="sec-head"><span class="sec-no">0-1</span><h2>リポジトリを複製する</h2></div>
+  <p class="body">①②のプロンプトはすべてチャットで打ちますが、最初のこれだけはターミナルです。テンプレートを複製すると、エージェント10体・雛形・規約が入った状態で、履歴のないまっさらなリポジトリが手に入ります。</p>
+  <pre class="cmd">gh repo create smilior/&lt;案件名&gt; --template smilior/ai-dev-template --private --clone
+cd &lt;案件名&gt; && claude   # →「◯◯を作りたい。企画書から始めて」</pre>
+  <p class="body">複製した先での調整は3つだけです:</p>
+  <ul class="prep">
+    <li><b>docs/standards/ は削除してよい。</b>正本はテンプレート側にあり、閲覧はこの文書サイトでできます。残すと改訂が追いかけてこない古いコピーになります</li>
+    <li><b>.github/workflows/pages.yml を削除する。</b>案件リポジトリは private のため Pages は動きません</li>
+    <li><b>CLAUDE.md の「案件確定時に記入」欄</b>は、スタック決定後に tech-lead に任せます(駅5で埋まります)</li>
+  </ul>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">0-2</span><h2>路線図: 5つの承認駅</h2></div>
+  <p class="body">立ち上げの路線は、①とは配色が逆です。区間を走る(書類を起草する)のはエージェント、駅で停まって承認するのはあなた。<b>5駅すべてで停車します</b>。ここで決めたことが、①で列車が走る線路になります。</p>
+
+  <figure class="fig">
+  <svg class="dgm" viewBox="0 0 960 240" role="img" aria-label="立ち上げの路線図。複製から乗車券まで、5つの承認駅すべてであなたが停まる">
+    <text x="485" y="44" text-anchor="middle" class="you">あなたの駅 × 5 ─ 全駅停車</text>
+    <path d="M215,66 v-8 h540 v8" fill="none" stroke="var(--red)" stroke-width="1.2"/>
+
+    <line x1="60" y1="110" x2="900" y2="110" stroke="var(--line-strong)" stroke-width="3"/>
+
+    <text x="147" y="92" text-anchor="middle" class="ag">planner</text>
+    <text x="282" y="92" text-anchor="middle" class="ag">business-analyst</text>
+    <text x="417" y="92" text-anchor="middle" class="ag">ui-designer</text>
+    <text x="552" y="92" text-anchor="middle" class="ag">architect</text>
+    <text x="687" y="92" text-anchor="middle" class="ag">tech-lead</text>
+
+    <circle cx="80" cy="110" r="15" class="term"/>
+    <rect x="201" y="96" width="28" height="28" transform="rotate(45 215 110)" class="hu"/>
+    <rect x="336" y="96" width="28" height="28" transform="rotate(45 350 110)" class="hu"/>
+    <rect x="471" y="96" width="28" height="28" transform="rotate(45 485 110)" class="hu"/>
+    <rect x="606" y="96" width="28" height="28" transform="rotate(45 620 110)" class="hu"/>
+    <rect x="741" y="96" width="28" height="28" transform="rotate(45 755 110)" class="hu"/>
+    <rect x="873" y="99" width="36" height="22" rx="3" class="st"/>
+    <line x1="884" y1="102" x2="884" y2="118" stroke="var(--green)" stroke-width="1" stroke-dasharray="2 2"/>
+
+    <text x="80" y="155" text-anchor="middle" class="nm">複製</text>
+    <text x="80" y="173" text-anchor="middle" class="sub">あなたが1コマンド</text>
+    <text x="215" y="155" text-anchor="middle" class="nm">企画GO</text>
+    <text x="215" y="173" text-anchor="middle" class="sub">効果を数字で見る</text>
+    <text x="350" y="155" text-anchor="middle" class="nm">要件確定</text>
+    <text x="350" y="173" text-anchor="middle" class="sub">受け入れ条件を見る</text>
+    <text x="485" y="155" text-anchor="middle" class="nm">画面合意</text>
+    <text x="485" y="173" text-anchor="middle" class="sub">利用部門と決める</text>
+    <text x="620" y="155" text-anchor="middle" class="nm">設計確定</text>
+    <text x="620" y="173" text-anchor="middle" class="sub">捨てた案の理由を見る</text>
+    <text x="755" y="155" text-anchor="middle" class="nm">規約確定</text>
+    <text x="755" y="173" text-anchor="middle" class="sub">1画面かを見る</text>
+    <text x="891" y="155" text-anchor="middle" class="nm">乗車券</text>
+    <text x="891" y="173" text-anchor="middle" class="sub">①流れ編へ発車</text>
+
+    <rect x="66" y="204" width="16" height="16" transform="rotate(45 74 212)" class="hu"/>
+    <text x="94" y="217" class="sub">= あなたが承認する駅(この路線は全駅停車)</text>
+    <text x="420" y="217" class="ag">planner</text>
+    <text x="470" y="217" class="sub">= 区間を走る起草エージェント</text>
+  </svg>
+  <figcaption><span class="fno">図 1</span>立ち上げの路線図。1駅=1フェーズ=1承認。駅2と駅3は利用部門との往復が入るため、日をまたぐことがあります。</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">0-3</span><h2>各駅で起きること</h2></div>
+
+  <div class="station">
+    <span class="no">駅 1 ─ あなた × planner</span><h3>企画GO: 効果を数字で見る</h3>
+    <p>「備品管理システムを作りたい。企画書から始めて」で planner が動き、企画書(01_prd.md)が届きます。見るのは<b>効果見込みが作業時間×頻度×人数の数字になっているか</b>。前提が実態と違えば「週次じゃなく日次で引き直して」と返し、良ければ「GO。要件定義に進めて」で次の区間へ。上長のGOが要る案件は、この企画書を持って取りに行きます。</p>
+  </div>
+
+  <div class="station">
+    <span class="no">駅 2 ─ あなた × business-analyst</span><h3>要件確定: 受け入れ条件を見る(最重要駅)</h3>
+    <p>「この企画の要件定義をして」で要件定義書(02_requirements.md)と用語集が届きます。business-analyst は業務ルールを勝手に決めず<b>「利用部門への確認事項」のリスト</b>を出してくるので、あなたが利用部門に聞いて回答を渡します。見るのは2つ: <b>受け入れ条件がGiven/When/Thenで書かれているか、ストーリーが2〜3日で終わるサイズか</b>。ここで書いた受け入れ条件が、①でそのまま旗(テスト)になります。この駅の精度=開発全体の精度です。</p>
+  </div>
+
+  <div class="station">
+    <span class="no">駅 3 ─ あなた × ui-designer</span><h3>画面合意: 利用部門と決める</h3>
+    <p>「画面案を作って」で画面一覧・遷移図・決定メモ(05_screens.md)が届きます。あなた1人で決めず、<b>利用部門に見せて合意を取ります</b>(見せ方は<a href="cooperation-guide.html">協力ガイド</a>にあります)。実装後の「思ってたのと違う」は、ほとんどがこの駅の通過漏れです。</p>
+  </div>
+
+  <div class="station">
+    <span class="no">駅 4 ─ あなた × architect</span><h3>設計確定: 捨てた案の理由を見る</h3>
+    <p>「技術選定をADRにまとめて」で構成図・ER図・ADR(04_architecture.md、adr/)が届きます。技術の中身に自信がなくても、見る点は2つで足ります: <b>ADRに捨てた案とその理由が書かれているか、運用が1人で回る規模に収まっているか</b>。この駅を出るとき、結合テストの契約(API仕様・スキーマ)が固まっています。</p>
+  </div>
+
+  <div class="station">
+    <span class="no">駅 5 ─ あなた × tech-lead</span><h3>規約確定: 1画面かを見る</h3>
+    <p>スタックが決まったら「CLAUDE.mdの案件欄を埋めて」で、tech-lead が命名規則・ディレクトリ構成・エラーハンドリング方針を記入します。見るのは分量だけ: <b>1画面に収まっているか</b>。長い規約はAIが読み飛ばします。これで全駅通過です。</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-no">0-4</span><h2>乗車券</h2></div>
+  <p class="body">5つの承認が、そのまま①流れ編に乗る条件です。書類の中身と完了条件の正本は<a href="phase-deliverables.html">フェーズ別成果物ガイド</a>にあります。</p>
+
+  <div class="ticket">
+    <div class="stub"><span>ADMIT ONE</span></div>
+    <div class="tbody">
+      <span class="t-eyebrow">BOARDING PASS ・ 全5承認</span>
+      <h3>乗車券 ─ ① 流れ編に進む条件</h3>
+      <ul class="check">
+        <li><b>企画書:</b> 効果が数字(作業時間×頻度×人数)で示され、GOが出ている</li>
+        <li><b>要件定義書:</b> 受け入れ条件がGiven/When/Thenで書かれ、利用部門が確認事項に回答済み</li>
+        <li><b>画面設計:</b> 利用部門が画面案に合意している</li>
+        <li><b>基本設計:</b> API仕様とスキーマ(結合テストの契約)が決まっている</li>
+        <li><b>CLAUDE.md:</b> 「案件確定時に記入」の欄が埋まっている</li>
+      </ul>
+      <p class="depart">5つ揃ったら発車です。<a href="practice-flow.html">① 流れ編</a>を開き、最初の一言は「US-01に着手して」。</p>
+    </div>
+  </div>
+</section>
+
+<div class="pn">
+  <span class="ph"></span>
+  <a href="practice-flow.html">次へ: ① 流れ編 ─ 1ストーリーの旅 →</a>
+</div>
+
+<footer>
+  <span>成果物の中身: <a href="phase-deliverables.html">成果物ガイド</a> ・ 頼み方: <a href="agents-roster.html">チーム名鑑</a></span>
+  <span>STD-AIDEV-008 (⓪) ・ REV 1.0 ・ 2026-07-04</span>
+</footer>
+
+</div>
+</body>
+</html>

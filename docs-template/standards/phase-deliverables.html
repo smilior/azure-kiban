@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>フェーズ別成果物ガイド</title>
+<style>
+:root {
+  --paper: #F4F5F1; --card: #FFFFFF; --ink: #1C2622; --muted: #5D6B63;
+  --line: #D9DED6; --line-strong: #2A3630;
+  --red: #C43A2E; --green: #1E7A46; --blue: #2B5FAB;
+  --tint-green: #E1EFE6; --tint-blue: #E3EAF5;
+  --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
+  --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", sans-serif;
+  --mono: "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141917; --card: #1D2421; --ink: #E8ECE7; --muted: #96A49B;
+    --line: #303B35; --line-strong: #C6D0C9;
+    --red: #E06A5C; --green: #4DAE7C; --blue: #6E9BD8;
+    --tint-green: #1F332A; --tint-blue: #212B3B;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); font-size: 14.5px; line-height: 1.95; color: var(--ink); background: var(--paper); }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.page { max-width: 920px; margin: 0 auto; padding: 48px 28px 72px; }
+
+.crumb { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--muted); margin-bottom: 34px; }
+.crumb a { color: var(--muted); }
+.crumb a:hover { color: var(--blue); }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; color: var(--muted); margin-bottom: 14px; }
+h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(26px, 4.2vw, 38px); letter-spacing: .05em; line-height: 1.4; }
+.doc-lead { margin-top: 10px; color: var(--muted); font-size: 15px; }
+
+.titleblock { margin-top: 26px; display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); border: 1.5px solid var(--line-strong); background: var(--card); }
+.titleblock .cell { padding: 9px 14px 7px; border-left: 1px solid var(--line); min-width: 0; }
+.titleblock .cell:first-child { border-left: none; }
+.titleblock .k { display: block; font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; color: var(--muted); margin-bottom: 2px; }
+.titleblock .v { font-size: 12.5px; font-weight: 600; overflow-wrap: anywhere; }
+.titleblock .v.mono { font-family: var(--mono); font-weight: 500; }
+@media (max-width: 820px) {
+  .titleblock { grid-template-columns: 1fr 1fr; }
+  .titleblock .cell { border-top: 1px solid var(--line); }
+  .titleblock .cell:nth-child(-n+2) { border-top: none; }
+  .titleblock .cell:nth-child(odd) { border-left: none; }
+  .titleblock .cell:nth-child(even) { border-left: 1px solid var(--line); }
+}
+
+section { margin-top: 60px; }
+.sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+.sec-no { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--red); letter-spacing: .06em; white-space: nowrap; }
+h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(20px, 3vw, 26px); letter-spacing: .06em; }
+.sec-head::after { content: ""; flex: 1; border-top: 1px solid var(--line); transform: translateY(-4px); }
+.sec-intro { margin-bottom: 22px; max-width: 46em; }
+.sec-intro strong { font-weight: 700; }
+
+figure.fig { background: var(--card); border: 1px solid var(--line); padding: 18px 16px 12px; margin: 18px 0; overflow-x: auto; }
+figure.fig svg { display: block; width: 100%; height: auto; min-width: 700px; font-family: var(--sans); }
+figure.fig figcaption { font-size: 12px; color: var(--muted); margin-top: 6px; padding: 10px 6px 0; border-top: 1px solid var(--line); line-height: 1.8; }
+figure.fig figcaption .fno { font-family: var(--mono); color: var(--red); margin-right: 8px; }
+.dgm .box { fill: var(--card); stroke: var(--line-strong); stroke-width: 1.2; }
+.dgm .no { font-family: var(--mono); font-size: 9px; fill: var(--muted); letter-spacing: .08em; }
+.dgm .nm { font-size: 12.5px; font-weight: 600; fill: var(--ink); }
+.dgm .sub { font-size: 10px; fill: var(--muted); }
+.dgm .lbl { font-size: 9.5px; fill: var(--red); font-weight: 600; }
+.dgm .rail { stroke: var(--muted); stroke-width: 1.4; fill: none; }
+.dgm .loop { stroke: var(--muted); stroke-width: 1.3; fill: none; stroke-dasharray: 4 3; }
+.dgm .gate { fill: var(--card); stroke: var(--red); stroke-width: 1.6; }
+
+.pb { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--line-strong); padding: 20px 24px 16px; margin-bottom: 16px; }
+.pb-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.pb-head .no { font-family: var(--mono); font-size: 20px; color: var(--muted); }
+.pb-head h3 { font-family: var(--serif); font-size: 19px; font-weight: 600; letter-spacing: .05em; }
+.pb-head .agents { font-family: var(--mono); font-size: 11px; color: var(--green); margin-left: auto; }
+.pb .aim { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.pb .doc { display: grid; grid-template-columns: 220px minmax(0,1fr); gap: 4px 18px; padding: 10px 0; border-top: 1px dashed var(--line); }
+.pb .doc .dt { font-size: 13.5px; font-weight: 700; }
+.pb .doc .dt a { color: var(--ink); }
+.pb .doc .dt a:hover { color: var(--blue); }
+.pb .doc .dt .f { display: block; font-family: var(--mono); font-size: 10px; font-weight: 400; color: var(--muted); }
+.pb .doc .dd { font-size: 12.5px; color: var(--muted); line-height: 1.9; }
+.pb .doc .dd b { color: var(--ink); font-weight: 600; }
+.pb .done { margin-top: 10px; font-size: 12.5px; font-weight: 600; color: var(--green); background: var(--tint-green); padding: 7px 14px; border-radius: 4px; }
+.pb .done::before { content: "✓ 完了条件: "; font-family: var(--mono); font-size: 11px; }
+@media (max-width: 680px) { .pb .doc { grid-template-columns: 1fr; } }
+
+footer { margin-top: 64px; padding-top: 18px; border-top: 1.5px solid var(--line-strong); font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .06em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<nav class="crumb"><a href="index.html">← ポータル</a><span>問い合わせ: 情報システム(m_nakagawa@smilior.com)</span></nav>
+
+<header>
+  <div class="eyebrow">INTERNAL IT STANDARD ・ PHASE DELIVERABLES</div>
+  <h1>フェーズ別成果物ガイド</h1>
+  <p class="doc-lead">何を作り、何に詰め、何が終われば次へ進めるか。</p>
+  <div class="titleblock" role="table" aria-label="文書管理情報">
+    <div class="cell"><span class="k">文書番号</span><span class="v mono">STD-AIDEV-004</span></div>
+    <div class="cell"><span class="k">版</span><span class="v mono">1.0</span></div>
+    <div class="cell"><span class="k">発行日</span><span class="v mono">2026-07-04</span></div>
+    <div class="cell"><span class="k">承認</span><span class="v">main へのマージ</span></div>
+    <div class="cell"><span class="k">雛形の実体</span><span class="v mono">docs/project/</span></div>
+  </div>
+</header>
+
+<!-- ============ 0 ============ -->
+<section id="sec0">
+  <div class="sec-head"><span class="sec-no">§0</span><h2>全体図 ─ 関門つきパイプライン</h2></div>
+  <p class="sec-intro">フェーズは書類で進む。<strong>◇の関門は人間の判断</strong>で、ここを通らないと次の書類が書けない。PoC は順番を持たず、迷ったときに随時差し込む。</p>
+
+  <figure class="fig">
+  <svg class="dgm" viewBox="0 0 960 240" role="img" aria-label="9フェーズのパイプライン。GO判断・要確認回答・画面合意・UATと上長承認の4つの関門を持つ">
+    <defs>
+      <marker id="mp" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 Z" fill="var(--muted)"/></marker>
+    </defs>
+
+    <!-- maintenance loop back to requirements -->
+    <path d="M 886,76 L 886,44 L 190,44 L 190,72" class="loop" marker-end="url(#mp)"/>
+    <rect x="410" y="34" width="216" height="17" fill="var(--card)" opacity=".95"/>
+    <text x="518" y="47" text-anchor="middle" class="sub">改修・追加要望は要件定義に戻る</text>
+
+    <!-- rail connectors -->
+    <line x1="122" y1="102" x2="142" y2="102" class="rail"/>
+    <line x1="238" y1="102" x2="258" y2="102" class="rail"/>
+    <line x1="354" y1="102" x2="374" y2="102" class="rail"/>
+    <line x1="470" y1="102" x2="490" y2="102" class="rail"/>
+    <line x1="586" y1="102" x2="606" y2="102" class="rail"/>
+    <line x1="702" y1="102" x2="722" y2="102" class="rail"/>
+    <line x1="818" y1="102" x2="838" y2="102" class="rail"/>
+
+    <!-- phase boxes -->
+    <g><rect x="26" y="78" width="96" height="48" rx="4" class="box"/><text x="74" y="95" text-anchor="middle" class="no">01</text><text x="74" y="113" text-anchor="middle" class="nm">企画</text></g>
+    <g><rect x="142" y="78" width="96" height="48" rx="4" class="box"/><text x="190" y="95" text-anchor="middle" class="no">02</text><text x="190" y="113" text-anchor="middle" class="nm">要件定義</text></g>
+    <g><rect x="258" y="78" width="96" height="48" rx="4" class="box"/><text x="306" y="95" text-anchor="middle" class="no">03</text><text x="306" y="113" text-anchor="middle" class="nm">モック</text></g>
+    <g><rect x="374" y="78" width="96" height="48" rx="4" class="box"/><text x="422" y="95" text-anchor="middle" class="no">04</text><text x="422" y="113" text-anchor="middle" class="nm">基本設計</text></g>
+    <g><rect x="490" y="78" width="96" height="48" rx="4" class="box"/><text x="538" y="95" text-anchor="middle" class="no">05</text><text x="538" y="113" text-anchor="middle" class="nm">規約</text></g>
+    <g><rect x="606" y="78" width="96" height="48" rx="4" class="box"/><text x="654" y="95" text-anchor="middle" class="no">06</text><text x="654" y="113" text-anchor="middle" class="nm">開発・テスト</text></g>
+    <g><rect x="722" y="78" width="96" height="48" rx="4" class="box"/><text x="770" y="95" text-anchor="middle" class="no">08</text><text x="770" y="113" text-anchor="middle" class="nm">社内リリース</text></g>
+    <g><rect x="838" y="78" width="96" height="48" rx="4" class="box"/><text x="886" y="95" text-anchor="middle" class="no">09</text><text x="886" y="113" text-anchor="middle" class="nm">保守</text></g>
+
+    <!-- gates -->
+    <rect x="125" y="95" width="14" height="14" transform="rotate(45 132 102)" class="gate"/>
+    <text x="132" y="148" text-anchor="middle" class="lbl">GO判断</text>
+    <rect x="241" y="95" width="14" height="14" transform="rotate(45 248 102)" class="gate"/>
+    <text x="248" y="148" text-anchor="middle" class="lbl">要確認の回答</text>
+    <rect x="357" y="95" width="14" height="14" transform="rotate(45 364 102)" class="gate"/>
+    <text x="364" y="148" text-anchor="middle" class="lbl">画面合意</text>
+    <rect x="705" y="95" width="14" height="14" transform="rotate(45 712 102)" class="gate"/>
+    <text x="712" y="148" text-anchor="middle" class="lbl">UAT・上長承認</text>
+
+    <!-- PoC side box -->
+    <path d="M 570,168 L 570,130" class="loop"/>
+    <rect x="470" y="168" width="200" height="44" rx="4" fill="var(--card)" stroke="var(--line)" stroke-width="1.3" stroke-dasharray="6 4"/>
+    <text x="570" y="185" text-anchor="middle" class="no">07</text>
+    <text x="570" y="201" text-anchor="middle" class="nm">PoC・トライアル(随時)</text>
+
+    <!-- legend -->
+    <rect x="30" y="218" width="10" height="10" transform="rotate(45 35 223)" class="gate"/>
+    <text x="48" y="227" class="sub">= 人間の判断が要る関門(左からあなた・利用部門・利用部門・利用部門+上長)</text>
+  </svg>
+  <figcaption><span class="fno">図 1</span>書類のリレーで進むパイプライン。関門の間はエージェントが自走する。</figcaption>
+  </figure>
+</section>
+
+<!-- ============ 1 ============ -->
+<section id="sec1">
+  <div class="sec-head"><span class="sec-no">§1</span><h2>フェーズ別の成果物と完了条件</h2></div>
+  <p class="sec-intro">各書類の「詰める中身」は雛形の見出しと一致している。リンク先の雛形には記入ガイドと記入例が入っている。</p>
+
+  <div class="pb">
+    <div class="pb-head"><span class="no">01</span><h3>企画</h3><span class="agents">planner</span></div>
+    <p class="aim">作る価値があるかを、1枚で判断できる状態にする。</p>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/blob/main/docs/project/01_prd.md">企画書<span class="f">01_prd.md</span></a></div>
+      <div class="dd">目的 ・ 対象業務と利用部門 ・ 現状の課題 ・ <b>効果見込み(作業時間×頻度×人数の数字)</b> ・ スコープ外 ・ 概算費用 ・ 要確認事項</div>
+    </div>
+    <div class="done">効果が数字で示され、あなた(と上長)が GO を出せる</div>
+  </div>
+
+  <div class="pb">
+    <div class="pb-head"><span class="no">02</span><h3>要件定義</h3><span class="agents">business-analyst</span></div>
+    <p class="aim">業務を、テストに変換できる条件に翻訳する。</p>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/blob/main/docs/project/02_requirements.md">要件定義書<span class="f">02_requirements.md</span></a></div>
+      <div class="dd"><b>ペルソナ</b>(役割・主な業務・ITリテラシー・利用頻度・利用環境) ・ ユーザーストーリー(「なぜ」付き) ・ <b>受け入れ条件(Given/When/Then、正常系+異常系)</b> ・ 非機能3点(同時利用者数・バックアップ・権限マトリクス) ・ 業務フロー(Mermaid) ・ 利用部門への確認事項</div>
+    </div>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/blob/main/docs/project/03_glossary.md">用語集<span class="f">03_glossary.md</span></a></div>
+      <div class="dd">用語 ・ 定義 ・ <b>コード上の名前</b>(生成コードの命名を固定する)</div>
+    </div>
+    <div class="done">利用部門が確認事項に回答済み。受け入れ条件がそのままテストになる粒度</div>
+  </div>
+
+  <div class="pb">
+    <div class="pb-head"><span class="no">03</span><h3>モックアップ</h3><span class="agents">ui-designer</span></div>
+    <p class="aim">画面の迷いを、実装前に潰す。</p>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/blob/main/docs/project/05_screens.md">画面設計<span class="f">05_screens.md</span></a></div>
+      <div class="dd">画面一覧(ID・画面名・目的・主要項目・利用者) ・ 遷移図(Mermaid) ・ <b>決定メモ(不採用案とその理由)</b> ・ 利用部門レビュー観点</div>
+    </div>
+    <div class="done">利用部門が画面案に合意している</div>
+  </div>
+
+  <div class="pb">
+    <div class="pb-head"><span class="no">04</span><h3>基本設計</h3><span class="agents">architect</span></div>
+    <p class="aim">技術判断を、理由ごと記録に残す。</p>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/blob/main/docs/project/04_architecture.md">基本設計書<span class="f">04_architecture.md</span></a></div>
+      <div class="dd">構成図 ・ ER図 ・ 認証・権限方式 ・ インフラ構成 ・ 外部連携(図はすべて Mermaid)</div>
+    </div>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/tree/main/docs/project/adr">ADR<span class="f">adr/NNNN-slug.md</span></a></div>
+      <div class="dd">背景 ・ 選択肢 ・ 決定 ・ 理由 ・ <b>捨てた案とその理由</b>(1判断=1ファイル。API があれば OpenAPI 定義もここで正本化)</div>
+    </div>
+    <div class="done">結合テストの契約(API仕様・スキーマ)が決まっている</div>
+  </div>
+
+  <div class="pb">
+    <div class="pb-head"><span class="no">05</span><h3>詳細設計 = 規約</h3><span class="agents">tech-lead</span></div>
+    <p class="aim">AIへの常設指示を1画面に保つ。クラス図は書かない。</p>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/blob/main/CLAUDE.md">開発規約<span class="f">CLAUDE.md</span></a></div>
+      <div class="dd">命名規則 ・ ディレクトリ構成 ・ エラーハンドリング方針 ・ テスト方針(7:2:1・DB方針) ・ <b>TDDガードレール3点</b> ・ スコープ規律</div>
+    </div>
+    <div class="doc">
+      <div class="dt">複雑ロジック仕様<span class="f">必要時のみ</span></div>
+      <div class="dd">料金計算・状態遷移・締め処理など、<b>コードを読んでも業務的な正しさを判断できない箇所だけ</b>個別に書く</div>
+    </div>
+    <div class="done">エージェントが迷わず実装に入れる(規約を読めば書き方が一意に決まる)</div>
+  </div>
+
+  <div class="pb">
+    <div class="pb-head"><span class="no">06</span><h3>開発・テスト</h3><span class="agents">qa-engineer / tdd-developer</span></div>
+    <p class="aim">Red→Green→Refactor でストーリーを1本ずつ積む。</p>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/blob/main/docs/project/06_test-plan.md">テスト計画<span class="f">06_test-plan.md</span></a></div>
+      <div class="dd">レベル別配分(単体7割・結合2割・総合1割) ・ 観点表(<b>境界値・異常系・権限</b>) ・ テスト用DB方針 ・ UATの進め方</div>
+    </div>
+    <div class="doc">
+      <div class="dt">テストコード+実装+PR<span class="f">src/ ・ tests/</span></div>
+      <div class="dd">受け入れ条件から起こしたテストが実質の仕様書 ・ <b>PR説明に変更の意図(なぜ)</b> ・ CIのテスト結果が記録になる</div>
+    </div>
+    <div class="done">ストーリーの受け入れテストが Green(テストの書き換えなしで)</div>
+  </div>
+
+  <div class="pb">
+    <div class="pb-head"><span class="no">07</span><h3>PoC・トライアル(随時)</h3><span class="agents">指示者</span></div>
+    <p class="aim">技術選定の迷いを、実測で潰す。順番を持たず必要なときに差し込む。</p>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/blob/main/docs/project/poc/0000-template.md">検証記録<span class="f">poc/NNNN-対象名.md</span></a></div>
+      <div class="dd">仮説 ・ <b>判定基準(数字で先に決める)</b> ・ 期限 ・ 結果(実測値のみ) ・ 採否と理由(捨てた理由は将来への申し送り)</div>
+    </div>
+    <div class="done">採否が数字で判定され、試行コードを本番に持ち込んでいない</div>
+  </div>
+
+  <div class="pb">
+    <div class="pb-head"><span class="no">08</span><h3>社内リリース</h3><span class="agents">sre-ops / tech-writer</span></div>
+    <p class="aim">利用部門が使える状態まで届ける。案内と教育までがリリース。</p>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/blob/main/docs/project/runbook/release.md">リリース手順<span class="f">runbook/release.md</span></a></div>
+      <div class="dd">前提条件 ・ 手順(コピペで実行できるコマンド+期待される出力) ・ 確認手順 ・ <b>ロールバック手順(必ず対で)</b></div>
+    </div>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/blob/main/docs/project/07_manual.md">マニュアル+案内<span class="f">07_manual.md</span></a></div>
+      <div class="dd">業務の流れ順の章立て ・ 1手順1文で結果まで ・ 案内は<b>「何が変わる・いつから・困ったら誰に」</b>の3点(唯一の「です・ます」文書)</div>
+    </div>
+    <div class="done">UAT完了 ・ 上長承認 ・ 利用部門への案内済み</div>
+  </div>
+
+  <div class="pb">
+    <div class="pb-head"><span class="no">09</span><h3>保守</h3><span class="agents">sre-ops / architect</span></div>
+    <p class="aim">次の担当者(未来の自分)に、docs/ だけで引き継げる状態を保つ。</p>
+    <div class="doc">
+      <div class="dt"><a href="https://github.com/smilior/ai-dev-template/blob/main/docs/project/runbook/incident-template.md">障害記録<span class="f">runbook/incident-*.md</span></a></div>
+      <div class="dd">事象 ・ 影響範囲 ・ 時系列 ・ 原因 ・ <b>再発防止(犯人探しではなく仕組みの改善)</b></div>
+    </div>
+    <div class="doc">
+      <div class="dt">ADRの継続+docs/の手入れ<span class="f">adr/ ・ docs/ 全体</span></div>
+      <div class="dd">保守期の技術判断も同じ ADR に追記 ・ 改修は要件定義(02)に戻って回す ・ <b>引き継ぎ資料は作らず、docs/ 一式がそれを兼ねる</b></div>
+    </div>
+    <div class="done">docs/ を読めば引き継げる状態が保たれている</div>
+  </div>
+</section>
+
+<footer>
+  <span>INDEX: index.html ・ 雛形: docs/project/</span>
+  <span>STD-AIDEV-004 ・ REV 1.0 ・ 2026-07-04</span>
+</footer>
+
+</div>
+</body>
+</html>

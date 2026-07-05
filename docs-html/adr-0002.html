@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADR-0002: 認証方式の選定(Easy Auth + Entra ID)</title>
+<style>
+:root {
+  --paper: #eef1f4;
+  --sheet: #ffffff;
+  --ink: #182635;
+  --sub: #5b6b7c;
+  --line: #d5dde4;
+  --line-strong: #9fb0c0;
+  --azure: #0d6fbe;
+  --azure-soft: #e3f0fa;
+  --teal: #0e7a6e;
+  --teal-soft: #dff2ef;
+  --slate: #5f6f80;
+  --slate-soft: #e8edf1;
+  --warn: #a34d0c;
+  --warn-soft: #f8ede1;
+  --mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic Medium", "Yu Gothic", "Meiryo", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0d1520;
+    --sheet: #141f2d;
+    --ink: #dce6f1;
+    --sub: #8fa1b5;
+    --line: #283a4e;
+    --line-strong: #3d5570;
+    --azure: #5aa7e6;
+    --azure-soft: #16293c;
+    --teal: #4cc2b4;
+    --teal-soft: #12312d;
+    --slate: #9fb0c1;
+    --slate-soft: #1e2c3c;
+    --warn: #e09a5a;
+    --warn-soft: #33241a;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.75;
+  font-size: 15px;
+  font-feature-settings: "palt";
+}
+.sheet { max-width: 980px; margin: 32px auto 64px; background: var(--sheet); border: 1px solid var(--line-strong); overflow-x: hidden; }
+.titleblock { display: flex; border-bottom: 2px solid var(--ink); }
+.tb-spine {
+  writing-mode: vertical-rl;
+  font-size: 11px; letter-spacing: 0.35em; color: var(--sub);
+  border-right: 1px solid var(--line);
+  padding: 16px 8px; text-align: center; flex: none;
+}
+.tb-main { flex: 1; padding: 28px 32px 20px; min-width: 0; }
+.tb-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; color: var(--azure); margin-bottom: 6px; }
+h1 { font-size: 25px; font-weight: 800; letter-spacing: 0.02em; line-height: 1.4; }
+.tb-meta {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  border: 1px solid var(--line); border-bottom: none; margin-top: 18px; font-size: 12.5px;
+}
+.tb-meta > div { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); padding: 6px 12px; }
+.tb-meta dt { color: var(--sub); font-size: 11px; }
+.tb-meta dd { font-family: var(--mono); font-size: 12px; word-break: break-all; }
+nav {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--sheet); border-bottom: 1px solid var(--line);
+  padding: 0 32px; overflow-x: auto; white-space: nowrap;
+}
+nav a { display: inline-block; padding: 10px 2px; margin-right: 22px; font-size: 12.5px; color: var(--sub); text-decoration: none; border-bottom: 2px solid transparent; }
+nav a:hover, nav a:focus-visible { color: var(--azure); border-bottom-color: var(--azure); }
+a:focus-visible { outline: 2px solid var(--azure); outline-offset: 2px; }
+main { padding: 8px 32px 40px; }
+section { margin-top: 44px; }
+h2 { font-size: 17px; font-weight: 800; letter-spacing: 0.04em; padding-bottom: 8px; border-bottom: 2px solid var(--ink); margin-bottom: 18px; }
+h3 { font-size: 13.5px; letter-spacing: 0.05em; margin: 22px 0 8px; }
+.note { font-size: 13px; color: var(--sub); margin-bottom: 14px; }
+p + p { margin-top: 10px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { border: 1px solid var(--line); padding: 7px 11px; text-align: left; vertical-align: top; }
+th { background: var(--slate-soft); font-size: 12px; letter-spacing: 0.05em; white-space: nowrap; }
+.figwrap { overflow-x: auto; border: 1px solid var(--line); padding: 8px; background: #ffffff; }
+.figwrap svg { display: block; min-width: 900px; width: 100%; height: auto; }
+.plain { padding-left: 1.4em; }
+.plain li { margin-bottom: 6px; }
+ol.steps { padding-left: 1.6em; }
+ol.steps li { margin-bottom: 4px; font-size: 13.5px; }
+.decided {
+  border: 1px solid var(--teal);
+  background: var(--teal-soft);
+  padding: 14px 18px;
+  font-size: 14px;
+}
+.decided b { color: var(--teal); }
+.rejected { border: 1px solid var(--line); background: var(--paper); padding: 12px 16px; font-size: 13px; color: var(--sub); }
+footer { border-top: 2px solid var(--ink); padding: 14px 32px; font-size: 11.5px; color: var(--sub); font-family: var(--mono); }
+footer a { color: var(--azure); }
+@media (max-width: 640px) {
+  .tb-spine { display: none; }
+  main, nav { padding-left: 18px; padding-right: 18px; }
+  .tb-main { padding: 20px 18px 16px; }
+  .sheet { margin: 0 0 40px; border-left: none; border-right: none; }
+}
+@media print {
+  nav { display: none; }
+  body { background: #fff; }
+  .sheet { border: none; margin: 0; max-width: none; }
+  section { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header class="titleblock">
+  <div class="tb-spine">検討フェーズ・判断記録</div>
+  <div class="tb-main">
+    <p class="tb-eyebrow">ADR / 0002</p>
+    <h1>認証方式の選定(Easy Auth + Microsoft Entra ID)</h1>
+    <dl class="tb-meta">
+      <div><dt>状態</dt><dd>決定済み</dd></div>
+      <div><dt>日付</dt><dd>2026-07-05</dd></div>
+      <div><dt>正本</dt><dd>docs/project/adr/0002-auth-easyauth.md</dd></div>
+      <div><dt>関連</dt><dd>02_requirements.md(P-7、US-07)/ ADR-0001</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav>
+  <a href="#decision">決定</a>
+  <a href="#bg">背景</a>
+  <a href="#options">選択肢</a>
+  <a href="#reason">理由</a>
+  <a href="#flow">ログインの流れ</a>
+  <a href="#session">セッションとトークン</a>
+  <a href="#graph">Graph API連携</a>
+  <a href="#multi">複数アプリ・静的サイト</a>
+  <a href="#rejected">捨てた案</a>
+</nav>
+
+<main>
+
+<section id="decision">
+  <h2>決定</h2>
+  <div class="decided">
+    <b>認証はEasy Auth(App Serviceの組み込み認証)+Microsoft Entra IDで行い、認証コンポーネントは自作しない。</b>
+    要件定義の前提P-7に反映済み。ADR-0001でP3(Container Apps)系を選ぶ場合は同等の組み込み認証に読み替える(「認証は自作せず基盤へ委譲」という趣旨は変わらない)。
+  </div>
+</section>
+
+<section id="bg">
+  <h2>背景</h2>
+  <p>現行構成では独立コンポーネントap-authがM365 SSO・トークン管理・OAuthのメール送信を担い、セッションとトークンはRedisに格納している。新基盤ではこの自作をやめて基盤機能へ委譲できるかが論点だった(ADR-0001の認証節)。前提は社内閉域網・M365テナント(Entra ID)の利用。</p>
+</section>
+
+<section id="options">
+  <h2>選択肢</h2>
+  <ul class="plain">
+    <li><b>案1: ap-authをコンテナのまま移植</b> — 実績はあるが、認証コードとRedisの保守が残り、PaaS化の目的(保守の委譲)に反する</li>
+    <li><b>案2: 各アプリ内でMSAL等のライブラリで実装</b> — 柔軟だが、アプリ数に比例して実装・シークレット管理・更新が増える</li>
+    <li><b>案3: 基盤の組み込み認証(Easy Auth)+Entra IDへ委譲</b> — アプリのコード変更ほぼ不要で、セッション・トークン管理も基盤が代行する</li>
+  </ul>
+</section>
+
+<section id="reason">
+  <h2>理由(案3を採用)</h2>
+  <ul class="plain">
+    <li>アプリにSDKや認証コードを入れずに、テンプレートの設定だけで全アプリへ同じ認証を適用できる。「テンプレートから環境がすぐできる」という第1段のゴールに直結する</li>
+    <li>セッション(Cookie)とトークン(トークンストア)の管理を基盤が代行し、現行Redisのセッション・トークン用途が不要になる</li>
+    <li>Redirect URIの解決は通常アクセスと同じ仕組み(社内DNS→Private Endpoint)に乗るため、閉域網でも成立する。Entra IDが閉域内へ通信することはない</li>
+  </ul>
+</section>
+
+<section id="flow">
+  <h2>仕組み: ログインの流れ</h2>
+  <p>Easy Authはアプリの手前に基盤が挟む「認証の門番」で、全リクエストがアプリのコードに届く前にこの層を通る。</p>
+  <div class="figwrap" style="margin-top:12px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 560" font-family="Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif">
+<defs>
+<marker id="am" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0d6fbe"/></marker>
+<marker id="aw" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#a34d0c"/></marker>
+<marker id="at" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0e7a6e"/></marker>
+</defs>
+<rect x="0" y="0" width="1080" height="560" fill="#ffffff"/>
+<text x="24" y="34" font-size="16" fill="#182635" text-anchor="start" font-weight="bold">Easy Auth ログインの流れ(P1・閉域網)</text>
+<text x="24" y="53" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">Entra IDは閉域内のアプリへ通信しない。戻り(⑤)はブラウザが社内DNS→PE経由で行う。</text>
+<rect x="55" y="70" width="190" height="48" rx="8" fill="#eef1f4" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="150.0" y="92.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">ブラウザ</text>
+<text x="150.0" y="109.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">利用者(社内NW)</text>
+<line x1="150" y1="118" x2="150" y2="500" stroke="#9fb0c0" stroke-width="1" stroke-dasharray="4 4"/>
+<rect x="375" y="70" width="190" height="48" rx="8" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="470.0" y="92.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Easy Auth</text>
+<text x="470.0" y="109.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">App Serviceの門番</text>
+<line x1="470" y1="118" x2="470" y2="500" stroke="#9fb0c0" stroke-width="1" stroke-dasharray="4 4"/>
+<rect x="605" y="70" width="190" height="48" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="700.0" y="92.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">アプリ</text>
+<text x="700.0" y="109.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">コード変更なし</text>
+<line x1="700" y1="118" x2="700" y2="500" stroke="#9fb0c0" stroke-width="1" stroke-dasharray="4 4"/>
+<rect x="835" y="70" width="190" height="48" rx="8" fill="#eef1f4" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="930.0" y="92.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Entra ID</text>
+<text x="930.0" y="109.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">M365</text>
+<line x1="930" y1="118" x2="930" y2="500" stroke="#9fb0c0" stroke-width="1" stroke-dasharray="4 4"/>
+<polyline points="150,150 470,150" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="217.5" y="133" width="185" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="310.0" y="142" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">① アプリへアクセス(未ログイン)</text>
+<polyline points="470,190 150,190" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="191.5" y="173" width="237" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="310.0" y="182" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">② Entra IDのログインへリダイレクト</text>
+<polyline points="150,230 930,230" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="452.5" y="213" width="175" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="540.0" y="222" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">③ M365アカウントでログイン</text>
+<polyline points="930,270 150,270" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="348.0" y="253" width="384" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="540.0" y="262" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">④ redirect_uriへ戻る指示(Entraはアプリへ通信しない)</text>
+<polyline points="150,310 470,310" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="113.0" y="293" width="394" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="310.0" y="302" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">⑤ /.auth/login/aad/callback(社内DNS→PE)</text>
+<polyline points="470,400 700,400" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="382.5" y="383" width="405" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="585.0" y="392" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">⑦ 利用者情報をヘッダーで渡す(X-MS-CLIENT-PRINCIPAL)</text>
+<polyline points="700,440 150,440" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="311.5" y="423" width="227" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="425.0" y="432" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">⑧ 画面表示(以後はCookieで素通し)</text>
+<rect x="330" y="336" width="280" height="34" rx="6" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.2"/>
+<text x="470" y="350" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">⑥ トークン検証・保管(トークンストア)</text>
+<text x="470" y="364" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">セッションCookie発行</text>
+<text x="24" y="530" font-size="11" fill="#0e7a6e" text-anchor="start" font-weight="normal">トークンの保管先はEasy Authのトークンストア。セッション・トークン用途のRedisは使わない。</text>
+</svg></div>
+  <ol class="steps" style="margin-top:14px;">
+    <li>未ログインの利用者がアプリへアクセスする(社内DNS→PE経由)</li>
+    <li>Easy AuthがセッションCookieの無いことを確認し、ブラウザをEntra IDへリダイレクトする</li>
+    <li>利用者がM365アカウントでログインする(ここだけM365側への通信)</li>
+    <li>Entra IDはブラウザへ「redirect_uri(/.auth/login/aad/callback)へ戻れ」と指示するだけで、閉域内のアプリへは一切通信しない</li>
+    <li>ブラウザが社内DNS→PE経由でcallbackへ戻る</li>
+    <li>Easy Authがトークンを検証・保管し、セッションCookie(AppServiceAuthSession)を発行する</li>
+    <li>以降のリクエストは、利用者情報をヘッダー(X-MS-CLIENT-PRINCIPAL)に付けてアプリへ転送される</li>
+    <li>アプリはヘッダーを読むだけで利用者を識別できる。ログイン処理のコードは書かない</li>
+  </ol>
+  <p class="note" style="margin-top:10px;">Redirect URIはEntra IDのアプリ登録に「文字列として」事前登録するだけで、Entra側から到達可能である必要はない。</p>
+</section>
+
+<section id="session">
+  <h2>セッションとトークンの管理(Redisが不要になる理由)</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>管理対象</th><th>現行(ap-auth+Redis)</th><th>新基盤(Easy Auth)</th></tr></thead>
+    <tbody>
+      <tr><td>ログインセッション</td><td>Redisに格納</td><td>Easy AuthのセッションCookie+内部ストアが保持</td></tr>
+      <tr><td>SSO後のアクセストークン</td><td>Redisに格納</td><td>Easy Authのトークンストアが暗号化保管。アプリはヘッダーか /.auth/me で取得</td></tr>
+      <tr><td>トークンの更新</td><td>ap-authが実装</td><td>/.auth/refresh を呼ぶとEasy Authがリフレッシュトークンで更新</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="margin-top:12px;">Redisが残る用途はアプリ独自のキャッシュ・一時データのみで、現行の利用がセッション+トークンに限られるため、新基盤では既定で設けない(必要になったアプリが出た時に追加する)。</p>
+</section>
+
+<section id="graph">
+  <h2>Graph API連携(メール送信)</h2>
+  <div class="figwrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 430" font-family="Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif">
+<defs>
+<marker id="am" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0d6fbe"/></marker>
+<marker id="aw" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#a34d0c"/></marker>
+<marker id="at" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0e7a6e"/></marker>
+</defs>
+<rect x="0" y="0" width="1080" height="430" fill="#ffffff"/>
+<text x="24" y="34" font-size="16" fill="#182635" text-anchor="start" font-weight="bold">Graph API連携(メール送信)の2方式</text>
+<text x="24" y="53" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">どちらもトークンを自前で保存・更新しない。</text>
+<line x1="540" y1="66" x2="540" y2="390" stroke="#9fb0c0" stroke-width="1" stroke-dasharray="6 4"/>
+<text x="40" y="88" font-size="13" fill="#182635" text-anchor="start" font-weight="bold">方式A: 利用者本人として送る(委任アクセス許可)</text>
+<rect x="60" y="110" width="170" height="52" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="145.0" y="140.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">アプリ</text>
+<rect x="320" y="106" width="190" height="60" rx="8" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="415.0" y="134.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Easy Auth</text>
+<text x="415.0" y="151.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">トークンストア</text>
+<rect x="170" y="270" width="230" height="56" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="285.0" y="296.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Graph API</text>
+<text x="285.0" y="313.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Mail.Send(委任)</text>
+<polyline points="230,136 314,136" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="226.5" y="91" width="91" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="272" y="100" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">① トークン取得</text>
+<rect x="182.5" y="180" width="179" height="15" fill="#ffffff" opacity="0.95"/>
+<text x="272" y="188" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">取得はヘッダー / .auth/me</text>
+<polyline points="145,162 145,226 285,226 285,264" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="143.5" y="209" width="143" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="215" y="218" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">② 利用者のトークンで送信</text>
+<text x="40" y="366" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">差出人 = ログイン中の利用者。期限切れは /.auth/refresh でEasy Authが更新する。</text>
+<text x="580" y="88" font-size="13" fill="#182635" text-anchor="start" font-weight="bold">方式B: システムとして送る(アプリケーション許可)</text>
+<rect x="600" y="110" width="170" height="52" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="685.0" y="140.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">アプリ</text>
+<rect x="860" y="106" width="190" height="60" rx="8" fill="#dff2ef" stroke="#0e7a6e" stroke-width="1.4"/>
+<text x="955.0" y="134.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Managed Identity</text>
+<text x="955.0" y="151.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">パスワード不要の身分証</text>
+<rect x="710" y="270" width="230" height="56" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="825.0" y="296.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Graph API</text>
+<text x="825.0" y="313.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Mail.Send(アプリ許可)</text>
+<polyline points="770,136 854,136" fill="none" stroke="#0e7a6e" stroke-width="1.8" marker-end="url(#at)"/>
+<rect x="740.5" y="91" width="143" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="812" y="100" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">① トークン取得(その場)</text>
+<polyline points="685,162 685,226 825,226 825,264" fill="none" stroke="#0e7a6e" stroke-width="1.8" marker-end="url(#at)"/>
+<rect x="688.5" y="209" width="133" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="755" y="218" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">② アプリ自身として送信</text>
+<text x="580" y="360" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">差出人 = no-reply等の共用メールボックス。</text>
+<text x="580" y="378" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">Application Access Policyで送信先メールボックスを限定する(統制必須)。</text>
+</svg></div>
+  <div class="tablewrap" style="margin-top:14px;">
+  <table>
+    <thead><tr><th></th><th>方式A: 利用者本人として送る</th><th>方式B: システムとして送る</th></tr></thead>
+    <tbody>
+      <tr><td><b>許可の種類</b></td><td>委任アクセス許可(Mail.Send)</td><td>アプリケーション許可(Mail.Send)</td></tr>
+      <tr><td><b>トークンの入手先</b></td><td>Easy Authのトークンストア(ログイン時に Mail.Send+offline_access を要求)</td><td>Managed Identity(その場で取得。保存しない)</td></tr>
+      <tr><td><b>差出人</b></td><td>ログイン中の利用者</td><td>no-reply等のサービス用メールボックス</td></tr>
+      <tr><td><b>向く場面</b></td><td>利用者の操作起点の送信</td><td>通知メール・バッチ送信</td></tr>
+      <tr><td><b>統制上の注意</b></td><td>利用者の権限の範囲内</td><td>テナント全体の送信権限になるため、Application Access Policy(Exchange Online)で送信可能なメールボックスを限定する(必須)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note" style="margin-top:10px;">現行ap-authの送信がどちらの方式かは確認中。確認結果に応じてUS-10(メール送信)の要否と方式を決める。</p>
+</section>
+
+<section id="multi">
+  <h2>複数アプリと静的サイト</h2>
+  <ul class="plain">
+    <li><b>複数アプリ(US-09)</b>: セッションCookieはアプリごとに独立する(US-09-S3)。ただしEntra ID側のログインセッションが効くため、2つ目以降のアプリはサイレント認証で自動的にログインが通り、利用者の操作は実質1回で済む</li>
+    <li><b>静的サイト(US-07-S4)</b>: P1(App Service集約)では静的サイトもAppのため、同じEasy Authをサイト単位で有効/無効にできる</li>
+  </ul>
+</section>
+
+<section id="rejected">
+  <h2>捨てた案とその理由</h2>
+  <div class="rejected">
+    <p><b>案1(ap-auth移植)</b>: 認証コード・Redis・コンテナの保守が残り、IaaS保守の委譲という企画の目的に反する。</p>
+    <p><b>案2(アプリ内MSAL実装)</b>: アプリ数に比例して実装とシークレット管理が増える。将来のID/パスワード認証(派遣社員向け、要件定義の将来検討)を扱う際に部分的に再評価する。</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  正本: docs/project/adr/0002-auth-easyauth.md | 本HTMLは閲覧用の配布物。編集はMarkdown側で行う | <a href="adr-0001.html">ADR-0001へ</a> | <a href="index.html">文書一覧へ</a> | 2026-07-05
+</footer>
+
+</div>
+</body>
+</html>

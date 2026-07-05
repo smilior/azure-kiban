@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>統制規程起案書</title>
+<style>
+:root {
+  --paper: #F4F5F1; --card: #FFFFFF; --ink: #1C2622; --muted: #5D6B63;
+  --line: #D9DED6; --line-strong: #2A3630;
+  --red: #C43A2E; --green: #1E7A46; --blue: #2B5FAB;
+  --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
+  --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", sans-serif;
+  --mono: "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141917; --card: #1D2421; --ink: #E8ECE7; --muted: #96A49B;
+    --line: #303B35; --line-strong: #C6D0C9;
+    --red: #E06A5C; --green: #4DAE7C; --blue: #6E9BD8;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); font-size: 14.5px; line-height: 2.0; color: var(--ink); background: var(--paper); }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.page { max-width: 860px; margin: 0 auto; padding: 36px 28px 72px; }
+.crumb { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--muted); margin-bottom: 34px; }
+.crumb a { color: var(--muted); }
+.crumb a:hover { color: var(--blue); }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; color: var(--muted); margin-bottom: 14px; }
+h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(24px, 4vw, 34px); letter-spacing: .05em; line-height: 1.4; }
+.doc-lead { margin-top: 10px; color: var(--muted); font-size: 14.5px; }
+.titleblock { margin: 26px 0 40px; display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); border: 1.5px solid var(--line-strong); background: var(--card); }
+.titleblock .cell { padding: 9px 14px 7px; border-left: 1px solid var(--line); min-width: 0; }
+.titleblock .cell:first-child { border-left: none; }
+.titleblock .k { display: block; font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; color: var(--muted); margin-bottom: 2px; }
+.titleblock .v { font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.titleblock .v.mono { font-family: var(--mono); font-weight: 500; }
+@media (max-width: 760px) {
+  .titleblock { grid-template-columns: 1fr 1fr; }
+  .titleblock .cell { border-top: 1px solid var(--line); }
+  .titleblock .cell:nth-child(-n+2) { border-top: none; }
+  .titleblock .cell:nth-child(odd) { border-left: none; }
+  .titleblock .cell:nth-child(even) { border-left: 1px solid var(--line); }
+}
+main h2 { font-family: var(--serif); font-weight: 600; font-size: 21px; letter-spacing: .06em; margin: 52px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+main h3 { font-size: 15px; font-weight: 700; margin: 30px 0 10px; }
+main p { margin: 12px 0; }
+main ul { margin: 12px 0; padding-left: 1.5em; }
+main li { margin: 5px 0; }
+main blockquote { border-left: 3px solid var(--green); background: var(--card); padding: 8px 16px; margin: 12px 0; font-size: 13px; color: var(--muted); }
+main .tblwrap { overflow-x: auto; border: 1px solid var(--line); background: var(--card); margin: 14px 0; }
+main table { border-collapse: collapse; width: 100%; }
+main th { text-align: left; font-family: var(--mono); font-weight: 500; font-size: 10.5px; letter-spacing: .12em; color: var(--muted); padding: 10px 16px 8px; border-bottom: 1.5px solid var(--line-strong); white-space: nowrap; }
+main td { padding: 9px 16px; border-bottom: 1px solid var(--line); font-size: 13.5px; line-height: 1.9; vertical-align: top; }
+main tr:last-child td { border-bottom: none; }
+main pre { background: var(--card); border: 1px solid var(--line); padding: 14px 18px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.8; margin: 14px 0; }
+main code { font-family: var(--mono); font-size: .92em; background: var(--card); border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; }
+main pre code { border: none; padding: 0; background: none; }
+main hr { border: none; border-top: 1px solid var(--line); margin: 32px 0; }
+main details { background: var(--card); border: 1px solid var(--line); padding: 10px 16px; margin: 14px 0; }
+main summary { cursor: pointer; font-weight: 600; font-size: 13px; }
+footer { margin-top: 64px; padding-top: 18px; border-top: 1.5px solid var(--line-strong); font-family: var(--mono); font-size: 10.5px; color: var(--muted); letter-spacing: .06em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+<nav class="crumb"><a href="index.html">← ポータル</a><span>問い合わせ: 情報システム(m_nakagawa@smilior.com)</span></nav>
+<header>
+  <div class="eyebrow">INTERNAL IT STANDARD ・ GENERATED DOCUMENT</div>
+  <h1>統制規程起案書</h1>
+  <p class="doc-lead">文書管理・記録保管・AI利用・フォーマットの4規程。承認用の配布文書。</p>
+  <div class="titleblock" role="table" aria-label="文書管理情報">
+    <div class="cell"><span class="k">文書番号</span><span class="v mono">STD-AIDEV-003</span></div>
+    <div class="cell"><span class="k">版</span><span class="v mono">1.1</span></div>
+    <div class="cell"><span class="k">発行日</span><span class="v mono">2026-07-04</span></div>
+    <div class="cell"><span class="k">承認</span><span class="v">main へのマージ</span></div>
+    <div class="cell"><span class="k">正本</span><span class="v mono">governance.md</span></div>
+  </div>
+</header>
+<main>
+<p>起案日: 2026-07-04(2026-07-04 改訂: ④フォーマット規則を追加) 対象: 文書管理ルール・記録の保管・AI利用ルール・フォーマット規則</p>
+<p>本起案は最小限の統制を定める。既存のGit運用(mainブランチ保護・PRレビュー)を統制の基盤に流用し、新規の仕組みは増やさない。要件IDトレーサビリティ等の重い管理は導入しない。監査で要求された時点で個別に検討する。</p>
+<h2>① 文書管理ルール</h2>
+<p><b>目的</b>: 設計書・手順書・規程類の版管理を、既存のGit運用だけで完結させる。</p>
+<p><b>ルール</b></p>
+<ul><li>mainブランチ上のファイルを承認済み版とする。</li><li>変更はPRを通す。PRのApprove(承認者1名以上)を承認記録とする。</li><li>改訂履歴はgit logで管理する。コミットメッセージに変更理由を書く。</li><li>mainブランチにブランチ保護を設定し、レビュー承認者を指定ロールに限定する。</li></ul>
+<p><b>証跡の残し方</b>: PRのApprove履歴とgit logを証跡とする。台帳や記録シートは別途作らない。</p>
+<p><b>例外時の扱い</b>: 緊急修正でレビューを待てない場合、mainへの直接pushを一時許可する。事後24時間以内にPRを起票し、承認を得る。承認の有無はPRコメントに残す。</p>
+<h2>② 記録の保管</h2>
+<p><b>目的</b>: CIのテスト結果・リリース承認・障害記録を、監査時に参照できる状態で残す。</p>
+<p><b>ルール</b></p>
+<ul><li>CIのテスト結果はCI基盤(GitHub Actions等)のログをそのまま保管する。</li><li>リリース承認はリリースPRのApprove履歴を承認記録とする。</li><li>障害記録はIssueまたは障害報告ドキュメントに、発生日時・影響範囲・対応内容・再発防止策を記載する。</li><li>保管期間: 要確認。</li></ul>
+<p><b>証跡の残し方</b>: CIログ・PR履歴・Issueへのリンクを、リリースノートまたは月次報告にまとめる。</p>
+<p><b>例外時の扱い</b>: 保管期間が確定するまで、既存ログを削除しない。CI基盤のログ自動削除設定を確認し、削除がある場合は無効化するか外部保存を検討する。</p>
+<h2>③ AI利用ルール</h2>
+<p><b>目的</b>: AI生成コードの品質と、AIへの情報提供範囲を統制する。</p>
+<p><b>ルール</b></p>
+<ul><li>AI生成コードは必ず人間がレビューする。レビュー未了のコードはmainにマージしない。</li><li>レビュー実施の証跡はPR承認とする。追加の承認フローは設けない。</li><li>社外秘情報・個人情報をAIツールに入力してよい範囲: 要確認。</li><li>範囲確定までは、顧客の個人情報・未公開の契約情報・認証情報(APIキー・パスワード)を入力対象から除外する。</li></ul>
+<p><b>証跡の残し方</b>: PRのApprove履歴を証跡とする。</p>
+<p><b>例外時の扱い</b>: 入力の可否に迷う情報は入力せず、上長に個別確認する。</p>
+<h2>④ フォーマット規則</h2>
+<p><b>目的</b>: 正本を1つに保ち、二重管理とAIが編集できない形式の混入を防ぐ。</p>
+<p><b>ルール</b></p>
+<ul><li>正本はテキスト形式に限る。文書=Markdown、図=Mermaid(Markdown内に埋め込み)、API仕様=OpenAPI(YAML)、DBスキーマ=マイグレーションファイル。</li><li>HTML・PDFは正本から作る生成物とする。生成物を直接編集しない。</li><li>育て続ける文書はMarkdownを正本とし、配布形を生成する。以後編集しない一枚物はHTMLのみでよい。</li><li>ExcelやWordで受け取った資料は入力として扱い、内容をMarkdownに起こして正本化する。受領ファイル自体は正本にしない。</li><li>置き場所: 標準・規程は docs/standards/、案件の書類は docs/project/ に置く。</li></ul>
+<p><b>証跡の残し方</b>: 正本の改訂はPRで行い、git logを改訂履歴とする(①文書管理ルールに従う)。</p>
+<p><b>例外時の扱い</b>: 社外から様式指定(Excel提出等)がある場合のみ、生成物としてその様式に書き出す。編集は正本側で行う。</p>
+<h2>承認欄</h2>
+<div class="tblwrap"><table>
+<thead><tr><th>承認者</th><th>承認日</th></tr></thead>
+<tbody>
+<tr><td></td><td></td></tr>
+</tbody></table></div>
+</main>
+<footer>
+  <span>GENERATED: tools/md2html.py ・ 編集は正本(governance.md)側で行う</span>
+  <span>STD-AIDEV-003 ・ REV 1.1 ・ 2026-07-04</span>
+</footer>
+</div>
+</body>
+</html>
