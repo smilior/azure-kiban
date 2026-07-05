@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif">
+<rect x="0" y="0" width="1120" height="440" fill="#ffffff"/>
+<text x="24" y="34" font-size="16" fill="#182635" text-anchor="start" font-weight="bold">証明書費用の損益分岐(概算)</text>
+<text x="24" y="53" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">単一ドメイン 約1.1万円/年×枚数 と ワイルドカード 約4.5万円/年(固定)の比較。価格は概算・要精査。</text>
+<line x1="90" y1="100" x2="90" y2="360" stroke="#9fb0c0" stroke-width="1.4"/>
+<line x1="90" y1="360" x2="1050" y2="360" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="40" y="105" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">年額</text>
+<line x1="86" y1="326" x2="90" y2="326" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="330" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">1万</text>
+<line x1="90" y1="326" x2="1050" y2="326" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="292" x2="90" y2="292" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="296" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">2万</text>
+<line x1="90" y1="292" x2="1050" y2="292" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="258" x2="90" y2="258" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="262" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">3万</text>
+<line x1="90" y1="258" x2="1050" y2="258" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="224" x2="90" y2="224" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="228" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">4万</text>
+<line x1="90" y1="224" x2="1050" y2="224" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="190" x2="90" y2="190" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="194" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">5万</text>
+<line x1="90" y1="190" x2="1050" y2="190" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="156" x2="90" y2="156" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="160" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">6万</text>
+<line x1="90" y1="156" x2="1050" y2="156" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="122" x2="90" y2="122" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="126" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">7万</text>
+<line x1="90" y1="122" x2="1050" y2="122" stroke="#eef1f4" stroke-width="1"/>
+<rect x="150" y="324.3" width="52" height="35.7" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="176" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">1個</text>
+<rect x="305" y="288.6" width="52" height="71.4" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="331" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">2個</text>
+<rect x="460" y="252.89999999999998" width="52" height="107.10000000000001" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="486" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">3個</text>
+<rect x="615" y="217.2" width="52" height="142.8" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="641" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">4個</text>
+<rect x="770" y="181.5" width="52" height="178.5" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="796" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">5個</text>
+<rect x="925" y="145.79999999999998" width="52" height="214.20000000000002" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="951" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">6個</text>
+<line x1="90" y1="207.0" x2="1050" y2="207.0" stroke="#0e7a6e" stroke-width="2.5" stroke-dasharray="8 4"/>
+<rect x="696" y="181.0" width="350" height="20" rx="2" fill="#ffffff" stroke="#ffffff" stroke-width="0.5"/>
+<text x="1044" y="196.0" font-size="11.5" fill="#0e7a6e" text-anchor="end" font-weight="bold">ワイルドカード 4.5万円/年(何個でも固定)</text>
+<text x="176" y="340.3" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">1.1万</text>
+<text x="331" y="304.6" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">2.1万</text>
+<text x="486" y="268.9" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">3.2万</text>
+<text x="641" y="233.2" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">4.2万</text>
+<text x="796" y="197.5" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">5.2万</text>
+<text x="951" y="161.79999999999998" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">6.3万</text>
+<rect x="130" y="112" width="400" height="64" rx="6" fill="#f8ede1" stroke="#a34d0c" stroke-width="1.4"/>
+<text x="150" y="137" font-size="12" fill="#182635" text-anchor="start" font-weight="bold">単価の分岐点は4〜5個(概算)。</text>
+<text x="150" y="157" font-size="10.5" fill="#5f6f80" text-anchor="start" font-weight="normal">検証レコード管理や更新失敗リスクが枚数に比例する分、</text>
+<text x="150" y="171" font-size="10.5" fill="#5f6f80" text-anchor="start" font-weight="normal">増える計画があるなら3個前後からワイルドカードが実質有利。</text>
+<text x="24" y="415" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">アプリ数(=単一ドメイン証明書を個別に買った場合の枚数)</text>
+</svg>
