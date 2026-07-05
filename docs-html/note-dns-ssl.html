@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>解説ノート: DNSとSSL証明書の考え方</title>
+<style>
+:root {
+  --paper: #eef1f4; --sheet: #ffffff; --ink: #182635; --sub: #5b6b7c;
+  --line: #d5dde4; --line-strong: #9fb0c0;
+  --azure: #0d6fbe; --azure-soft: #e3f0fa;
+  --teal: #0e7a6e; --teal-soft: #dff2ef;
+  --slate: #5f6f80; --slate-soft: #e8edf1;
+  --warn: #a34d0c; --warn-soft: #f8ede1;
+  --mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic Medium", "Yu Gothic", "Meiryo", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0d1520; --sheet: #141f2d; --ink: #dce6f1; --sub: #8fa1b5;
+    --line: #283a4e; --line-strong: #3d5570;
+    --azure: #5aa7e6; --azure-soft: #16293c;
+    --teal: #4cc2b4; --teal-soft: #12312d;
+    --slate: #9fb0c1; --slate-soft: #1e2c3c;
+    --warn: #e09a5a; --warn-soft: #33241a;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.75; font-size: 15px; font-feature-settings: "palt"; }
+.sheet { max-width: 980px; margin: 32px auto 64px; background: var(--sheet); border: 1px solid var(--line-strong); overflow-x: hidden; }
+.titleblock { display: flex; border-bottom: 2px solid var(--ink); }
+.tb-spine { writing-mode: vertical-rl; font-size: 11px; letter-spacing: 0.35em; color: var(--sub); border-right: 1px solid var(--line); padding: 16px 8px; text-align: center; flex: none; }
+.tb-main { flex: 1; padding: 28px 32px 20px; min-width: 0; }
+.tb-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; color: var(--azure); margin-bottom: 6px; }
+h1 { font-size: 24px; font-weight: 800; letter-spacing: 0.02em; line-height: 1.4; }
+.tb-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); border: 1px solid var(--line); border-bottom: none; margin-top: 18px; font-size: 12.5px; }
+.tb-meta > div { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); padding: 6px 12px; }
+.tb-meta dt { color: var(--sub); font-size: 11px; }
+.tb-meta dd { font-family: var(--mono); font-size: 12px; word-break: break-all; }
+nav { position: sticky; top: 0; z-index: 10; background: var(--sheet); border-bottom: 1px solid var(--line); padding: 0 32px; overflow-x: auto; white-space: nowrap; }
+nav a { display: inline-block; padding: 10px 2px; margin-right: 22px; font-size: 12.5px; color: var(--sub); text-decoration: none; border-bottom: 2px solid transparent; }
+nav a:hover, nav a:focus-visible { color: var(--azure); border-bottom-color: var(--azure); }
+a:focus-visible { outline: 2px solid var(--azure); outline-offset: 2px; }
+main { padding: 8px 32px 40px; }
+section { margin-top: 44px; }
+h2 { font-size: 17px; font-weight: 800; letter-spacing: 0.04em; padding-bottom: 8px; border-bottom: 2px solid var(--ink); margin-bottom: 18px; }
+.note { font-size: 13px; color: var(--sub); margin-bottom: 14px; }
+p + p { margin-top: 10px; }
+code { font-family: var(--mono); font-size: 12.5px; background: var(--slate-soft); padding: 1px 5px; border-radius: 3px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { border: 1px solid var(--line); padding: 7px 11px; text-align: left; vertical-align: top; }
+th { background: var(--slate-soft); font-size: 12px; letter-spacing: 0.05em; white-space: nowrap; }
+.figwrap { overflow-x: auto; border: 1px solid var(--line); padding: 8px; background: #ffffff; }
+.figwrap svg { display: block; min-width: 960px; width: 100%; height: auto; }
+.plain { padding-left: 1.4em; }
+.plain li { margin-bottom: 6px; }
+.callout { border: 1px solid var(--teal); background: var(--teal-soft); padding: 12px 16px; font-size: 13.5px; }
+.kari { font-size: 11px; color: var(--warn); background: var(--warn-soft); padding: 0 6px; border: 1px solid var(--warn); white-space: nowrap; }
+footer { border-top: 2px solid var(--ink); padding: 14px 32px; font-size: 11.5px; color: var(--sub); font-family: var(--mono); }
+footer a { color: var(--azure); }
+@media (max-width: 640px) {
+  .tb-spine { display: none; }
+  main, nav { padding-left: 18px; padding-right: 18px; }
+  .tb-main { padding: 20px 18px 16px; }
+  .sheet { margin: 0 0 40px; border-left: none; border-right: none; }
+}
+@media print { nav { display: none; } body { background: #fff; } .sheet { border: none; margin: 0; max-width: none; } section { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header class="titleblock">
+  <div class="tb-spine">検討フェーズ・解説ノート</div>
+  <div class="tb-main">
+    <p class="tb-eyebrow">NOTE / N-3</p>
+    <h1>DNSとSSL証明書の考え方</h1>
+    <dl class="tb-meta">
+      <div><dt>種別</dt><dd>解説ノート(費用と運用の設計)</dd></div>
+      <div><dt>日付</dt><dd>2026-07-05</dd></div>
+      <div><dt>正本</dt><dd>docs/project/notes/dns-ssl.md</dd></div>
+      <div><dt>関連</dt><dd>P-5 / 確認事項2 / ADR-0001(名前解決)</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav>
+  <a href="#dns">DNS</a>
+  <a href="#cert">単一とワイルドカード</a>
+  <a href="#url">URL設計</a>
+  <a href="#rotate">自動ローテーション</a>
+  <a href="#cost">費用まとめ</a>
+</nav>
+
+<main>
+
+<section id="dns">
+  <h2>DNSの考え方</h2>
+  <p>結論を先に書くと、<b>DNSはほぼ固定費、証明書はワイルドカード契約にすれば固定費</b>になり、アプリ追加の増分費用はPE(約1,100円/月)だけを維持できる。</p>
+  <ul class="plain" style="margin-top:12px;">
+    <li><b>Azure側(Private DNSゾーン)</b>: privatelink系のゾーンは全Web App共通で、アプリを増やしてもゾーンは増えない。増えるのはゾーン内のレコードだけで、レコード追加の費用は実質ゼロ。ゾーン自体は約50円/月×数個</li>
+    <li><b>社内DNS側</b>: アプリ追加ごとにAレコード1行(カスタムドメイン→PEの私設IP)。自社運用のため費用ゼロ。テンプレートの手順に含める</li>
+    <li>注意: <b>DNSレコードはアプリごとに必要</b>。PEの私設IPがアプリごとに異なるため、ワイルドカードのDNSレコード(<code>*.apps</code>→1つのIP)で済ませることはできない。証明書は1枚に集約できてもDNSは1行ずつ、と覚える</li>
+  </ul>
+</section>
+
+<section id="cert">
+  <h2>SSL証明書: 単一ドメイン契約とワイルドカード契約</h2>
+  <p class="note">前提P-5のとおりApp Service証明書を使う(無料のマネージド証明書は、発行時にアプリへのパブリックアクセスが必要なため閉域では使えない)。</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th></th><th>単一ドメイン契約</th><th>ワイルドカード契約</th></tr></thead>
+    <tbody>
+      <tr><td><b>カバー範囲</b></td><td>1ドメイン(例: bihin.apps.example.co.jp)につき1枚</td><td><code>*.apps.example.co.jp</code> の第1階層すべてを1枚で</td></tr>
+      <tr><td><b>年額(概算 <span class="kari">要精査</span>)</b></td><td>約1.1万円/枚</td><td>約4.5万円</td></tr>
+      <tr><td><b>アプリ追加のたびに</b></td><td>1枚ずつ購入・検証・割り当てが増える</td><td>何もしない(既存の1枚を割り当てるだけ)</td></tr>
+      <tr><td><b>ドメイン所有検証</b></td><td>枚数分のレコードを維持</td><td>1つだけ維持</td></tr>
+      <tr><td><b>更新失敗のリスク箇所</b></td><td>枚数に比例</td><td>1か所</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="figwrap" style="margin-top:14px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" font-family="Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif">
+<rect x="0" y="0" width="1120" height="440" fill="#ffffff"/>
+<text x="24" y="34" font-size="16" fill="#182635" text-anchor="start" font-weight="bold">証明書費用の損益分岐(概算)</text>
+<text x="24" y="53" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">単一ドメイン 約1.1万円/年×枚数 と ワイルドカード 約4.5万円/年(固定)の比較。価格は概算・要精査。</text>
+<line x1="90" y1="100" x2="90" y2="360" stroke="#9fb0c0" stroke-width="1.4"/>
+<line x1="90" y1="360" x2="1050" y2="360" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="40" y="105" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">年額</text>
+<line x1="86" y1="326" x2="90" y2="326" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="330" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">1万</text>
+<line x1="90" y1="326" x2="1050" y2="326" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="292" x2="90" y2="292" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="296" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">2万</text>
+<line x1="90" y1="292" x2="1050" y2="292" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="258" x2="90" y2="258" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="262" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">3万</text>
+<line x1="90" y1="258" x2="1050" y2="258" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="224" x2="90" y2="224" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="228" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">4万</text>
+<line x1="90" y1="224" x2="1050" y2="224" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="190" x2="90" y2="190" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="194" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">5万</text>
+<line x1="90" y1="190" x2="1050" y2="190" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="156" x2="90" y2="156" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="160" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">6万</text>
+<line x1="90" y1="156" x2="1050" y2="156" stroke="#eef1f4" stroke-width="1"/>
+<line x1="86" y1="122" x2="90" y2="122" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="80" y="126" font-size="10" fill="#5f6f80" text-anchor="end" font-weight="normal">7万</text>
+<line x1="90" y1="122" x2="1050" y2="122" stroke="#eef1f4" stroke-width="1"/>
+<rect x="150" y="324.3" width="52" height="35.7" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="176" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">1個</text>
+<rect x="305" y="288.6" width="52" height="71.4" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="331" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">2個</text>
+<rect x="460" y="252.89999999999998" width="52" height="107.10000000000001" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="486" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">3個</text>
+<rect x="615" y="217.2" width="52" height="142.8" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="641" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">4個</text>
+<rect x="770" y="181.5" width="52" height="178.5" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="796" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">5個</text>
+<rect x="925" y="145.79999999999998" width="52" height="214.20000000000002" rx="3" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="951" y="378" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">6個</text>
+<line x1="90" y1="207.0" x2="1050" y2="207.0" stroke="#0e7a6e" stroke-width="2.5" stroke-dasharray="8 4"/>
+<rect x="696" y="181.0" width="350" height="20" rx="2" fill="#ffffff" stroke="#ffffff" stroke-width="0.5"/>
+<text x="1044" y="196.0" font-size="11.5" fill="#0e7a6e" text-anchor="end" font-weight="bold">ワイルドカード 4.5万円/年(何個でも固定)</text>
+<text x="176" y="340.3" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">1.1万</text>
+<text x="331" y="304.6" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">2.1万</text>
+<text x="486" y="268.9" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">3.2万</text>
+<text x="641" y="233.2" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">4.2万</text>
+<text x="796" y="197.5" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">5.2万</text>
+<text x="951" y="161.79999999999998" font-size="10.5" fill="#0d6fbe" text-anchor="middle" font-weight="normal">6.3万</text>
+<rect x="130" y="112" width="400" height="64" rx="6" fill="#f8ede1" stroke="#a34d0c" stroke-width="1.4"/>
+<text x="150" y="137" font-size="12" fill="#182635" text-anchor="start" font-weight="bold">単価の分岐点は4〜5個(概算)。</text>
+<text x="150" y="157" font-size="10.5" fill="#5f6f80" text-anchor="start" font-weight="normal">検証レコード管理や更新失敗リスクが枚数に比例する分、</text>
+<text x="150" y="171" font-size="10.5" fill="#5f6f80" text-anchor="start" font-weight="normal">増える計画があるなら3個前後からワイルドカードが実質有利。</text>
+<text x="24" y="415" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">アプリ数(=単一ドメイン証明書を個別に買った場合の枚数)</text>
+</svg></div>
+  <div class="callout" style="margin-top:14px;"><b>単価の分岐点は4〜5個(概算)</b>。単一×4枚=約4.2万円がワイルドカード約4.5万円とほぼ並び、5個からは逆転する。検証レコードの管理・更新失敗のリスク・割り当て作業が枚数に比例する運用面を加味すると、アプリが増える計画があるなら3個前後からワイルドカードが実質有利。本件は「今後アプリの公開先が複数必要になる」ことが企画の前提なので、ワイルドカード契約を推奨する。</div>
+</section>
+
+<section id="url">
+  <h2>ワイルドカード契約時のURL設計</h2>
+  <div class="figwrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 470" font-family="Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif">
+<rect x="0" y="0" width="1120" height="470" fill="#ffffff"/>
+<text x="24" y="34" font-size="16" fill="#182635" text-anchor="start" font-weight="bold">ワイルドカード証明書とURL設計</text>
+<text x="24" y="53" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">基盤専用の親サブドメインを1つ切り、アプリは第1階層に並べる。ワイルドカードが守るのは1階層だけ。</text>
+<rect x="40" y="80" width="300" height="50" rx="8" fill="#eef1f4" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="190" y="104" font-size="13" fill="#182635" text-anchor="middle" font-weight="bold" font-family="SF Mono, Consolas, Courier New, monospace">example.co.jp</text>
+<text x="190" y="120" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">会社のドメイン(パブリックDNSゾーンを所有)</text>
+<rect x="40" y="170" width="300" height="50" rx="8" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="190" y="194" font-size="13" fill="#182635" text-anchor="middle" font-weight="bold" font-family="SF Mono, Consolas, Courier New, monospace">apps.example.co.jp</text>
+<text x="190" y="210" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">基盤専用の親(この名前自体は対象外)</text>
+<line x1="190" y1="130" x2="190" y2="170" stroke="#9fb0c0" stroke-width="1.4"/>
+<rect x="440" y="80" width="640" height="300" rx="8" fill="#dff2ef" stroke="#0e7a6e" stroke-width="1.4" stroke-dasharray="7 4"/>
+<text x="460" y="106" font-size="12.5" fill="#0e7a6e" text-anchor="start" font-weight="bold">ワイルドカード証明書 *.apps.example.co.jp(1枚・年額固定)</text>
+<rect x="470" y="130" width="400" height="46" rx="8" fill="#ffffff" stroke="#0e7a6e" stroke-width="1.4"/>
+<text x="485" y="152" font-size="12" fill="#182635" text-anchor="start" font-weight="normal" font-family="SF Mono, Consolas, Courier New, monospace">bihin.apps.example.co.jp</text>
+<text x="485" y="167" font-size="9.5" fill="#5f6f80" text-anchor="start" font-weight="normal">備品管理アプリ</text>
+<text x="900" y="158" font-size="11" fill="#0e7a6e" text-anchor="start" font-weight="bold">カバーされる</text>
+<rect x="470" y="190" width="400" height="46" rx="8" fill="#ffffff" stroke="#0e7a6e" stroke-width="1.4"/>
+<text x="485" y="212" font-size="12" fill="#182635" text-anchor="start" font-weight="normal" font-family="SF Mono, Consolas, Courier New, monospace">keihi.apps.example.co.jp</text>
+<text x="485" y="227" font-size="9.5" fill="#5f6f80" text-anchor="start" font-weight="normal">経費アプリ</text>
+<text x="900" y="218" font-size="11" fill="#0e7a6e" text-anchor="start" font-weight="bold">カバーされる</text>
+<rect x="470" y="250" width="400" height="46" rx="8" fill="#ffffff" stroke="#0e7a6e" stroke-width="1.4"/>
+<text x="485" y="272" font-size="12" fill="#182635" text-anchor="start" font-weight="normal" font-family="SF Mono, Consolas, Courier New, monospace">bihin-dev.apps.example.co.jp</text>
+<text x="485" y="287" font-size="9.5" fill="#5f6f80" text-anchor="start" font-weight="normal">検証環境はハイフンで同一階層に</text>
+<text x="900" y="278" font-size="11" fill="#0e7a6e" text-anchor="start" font-weight="bold">カバーされる</text>
+<rect x="470" y="310" width="400" height="46" rx="8" fill="#ffffff" stroke="#a34d0c" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="485" y="332" font-size="12" fill="#182635" text-anchor="start" font-weight="normal" font-family="SF Mono, Consolas, Courier New, monospace">dev.bihin.apps.example.co.jp</text>
+<text x="485" y="347" font-size="9.5" fill="#5f6f80" text-anchor="start" font-weight="normal">2階層下は守られない</text>
+<text x="900" y="338" font-size="11" fill="#a34d0c" text-anchor="start" font-weight="bold">対象外</text>
+<line x1="340" y1="195" x2="440" y2="195" stroke="#0d6fbe" stroke-width="1.6"/>
+<text x="24" y="415" font-size="12" fill="#182635" text-anchor="start" font-weight="normal">URLの規約: アプリ名 = サブドメイン名 = Web App名 に揃えると、テンプレートの手順(DNS登録・証明書割り当て)を機械的にできる。</text>
+<text x="24" y="435" font-size="12" fill="#182635" text-anchor="start" font-weight="normal">DNSレコードはアプリごとに必要(PEの私設IPがアプリごとに異なるため、*.apps を1行で済ませることはできない)。</text>
+</svg></div>
+  <ul class="plain" style="margin-top:14px;">
+    <li><b>基盤専用の親サブドメインを1つ切る</b>(例: <code>apps.example.co.jp</code>)。会社ドメイン直下の <code>*.example.co.jp</code> を1枚でカバーするのは影響範囲が広すぎるため避ける</li>
+    <li><b>アプリは第1階層に並べる</b>: <code>bihin.apps.example.co.jp</code>、<code>keihi.apps.example.co.jp</code></li>
+    <li><b>ワイルドカードが守るのは1階層だけ</b>。<code>dev.bihin.apps...</code> のような2階層下は対象外になるため、環境の区別はハイフンで同一階層に置く(<code>bihin-dev.apps...</code>)</li>
+    <li>親の名前そのもの(<code>apps.example.co.jp</code>)もワイルドカードの対象外。ポータルを置くなら名前を第1階層に置く(<code>portal.apps...</code>)</li>
+    <li>命名規約: <b>アプリ名=サブドメイン名=Web App名</b>に揃えると、テンプレートの手順(DNS登録・証明書割り当て・Entra登録)を機械的にできる</li>
+  </ul>
+</section>
+
+<section id="rotate">
+  <h2>自動ローテーション(自動更新)の判断</h2>
+  <p>App Service証明書はKey Vaultに格納され、自動更新をONにすると、更新された証明書は同じシークレットの新バージョンとして入り、各Web Appが自動で追従する(定期同期・再起動不要)。</p>
+  <div class="tablewrap" style="margin-top:12px;">
+  <table>
+    <thead><tr><th></th><th>自動更新する</th><th>自動更新しない(手動)</th></tr></thead>
+    <tbody>
+      <tr><td><b>失効リスク</b></td><td>構造的に防げる(更新忘れが起きない)</td><td>更新忘れ=全アプリ停止のリスクを毎年抱える</td></tr>
+      <tr><td><b>作業</b></td><td>ゼロ(監視のみ)</td><td>毎年の更新・割り当て作業。単一契約なら枚数分</td></tr>
+      <tr><td><b>統制</b></td><td>更新タイミングを選べない。請求が自動継続</td><td>変更管理に載せて計画更新できる。検証環境で先行確認できる。契約をやめる判断の機会が毎年ある</td></tr>
+      <tr><td><b>向くケース</b></td><td>本件を含むほぼすべて</td><td>変更統制が厳格で、失効監視の体制が別にある場合のみ</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout" style="margin-top:14px;">推奨は<b>自動更新ON+監視</b>。監視項目は1つに集約される: ドメイン所有検証(パブリックDNS側の検証レコード)が生き続けているか。これが切れると自動更新が止まる。Runbook(運用準備)にこの1行を入れる。</div>
+</section>
+
+<section id="cost">
+  <h2>費用まとめ(アプリを増やしたときの増分)</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>項目</th><th>アプリ追加時の増分</th></tr></thead>
+    <tbody>
+      <tr><td>DNS(社内・Azure)</td><td>0円(Aレコード1行の作業のみ)</td></tr>
+      <tr><td>SSL証明書(ワイルドカード契約)</td><td>0円(既存の1枚を割り当て)</td></tr>
+      <tr><td>Private Endpoint</td><td>約1,100円/月</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  正本: docs/project/notes/dns-ssl.md | 本HTMLは閲覧用の配布物。編集はMarkdown側で行う | <a href="note-appservice.html">App Serviceプランの考え方へ</a> | <a href="index.html">文書一覧へ</a> | 2026-07-05
+</footer>
+
+</div>
+</body>
+</html>
