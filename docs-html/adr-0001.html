@@ -738,7 +738,7 @@ footer a { color: var(--azure); }
 <text x="520" y="622" font-size="10.5" fill="#5f6f80" text-anchor="start" font-weight="normal">PE = Private Endpoint(私設IPの受け口) / 社内NW〜VNet間は閉域接続(ExpressRoute・VPN)</text>
 </svg></div>
 
-  <p class="note" style="margin-top:12px;">注意: いずれのパターンも、VNetからGitHub.comへの外向きHTTPS(ランナーのpoll)と、利用者ブラウザからEntra IDへの到達が前提になる。閉域網のアウトバウンド制御(プロキシ・Firewall)の方針は設計時に確認する。</p>
+  <p class="note" style="margin-top:12px;">注意: いずれのパターンも、VNetからGitHub.comへの外向きHTTPS(ランナーのpoll)と、利用者ブラウザからEntra IDへの到達が前提になる。VNetからGitHub.comへの外向きアクセスは可能と確認済み(前提P-8)。インバウンドの開放はしない。</p>
 </section>
 
 <section id="dns">
