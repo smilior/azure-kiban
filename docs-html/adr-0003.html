@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADR-0003: テンプレートの記述形式(Bicep採用)</title>
+<style>
+:root {
+  --paper: #eef1f4; --sheet: #ffffff; --ink: #182635; --sub: #5b6b7c;
+  --line: #d5dde4; --line-strong: #9fb0c0;
+  --azure: #0d6fbe; --azure-soft: #e3f0fa;
+  --teal: #0e7a6e; --teal-soft: #dff2ef;
+  --slate: #5f6f80; --slate-soft: #e8edf1;
+  --warn: #a34d0c; --warn-soft: #f8ede1;
+  --mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic Medium", "Yu Gothic", "Meiryo", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0d1520; --sheet: #141f2d; --ink: #dce6f1; --sub: #8fa1b5;
+    --line: #283a4e; --line-strong: #3d5570;
+    --azure: #5aa7e6; --azure-soft: #16293c;
+    --teal: #4cc2b4; --teal-soft: #12312d;
+    --slate: #9fb0c1; --slate-soft: #1e2c3c;
+    --warn: #e09a5a; --warn-soft: #33241a;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.75; font-size: 15px; font-feature-settings: "palt"; }
+.sheet { max-width: 980px; margin: 32px auto 64px; background: var(--sheet); border: 1px solid var(--line-strong); overflow-x: hidden; }
+.titleblock { display: flex; border-bottom: 2px solid var(--ink); }
+.tb-spine { writing-mode: vertical-rl; font-size: 11px; letter-spacing: 0.35em; color: var(--sub); border-right: 1px solid var(--line); padding: 16px 8px; text-align: center; flex: none; }
+.tb-main { flex: 1; padding: 28px 32px 20px; min-width: 0; }
+.tb-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; color: var(--azure); margin-bottom: 6px; }
+h1 { font-size: 24px; font-weight: 800; letter-spacing: 0.02em; line-height: 1.4; }
+.tb-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); border: 1px solid var(--line); border-bottom: none; margin-top: 18px; font-size: 12.5px; }
+.tb-meta > div { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); padding: 6px 12px; }
+.tb-meta dt { color: var(--sub); font-size: 11px; }
+.tb-meta dd { font-family: var(--mono); font-size: 12px; word-break: break-all; }
+main { padding: 8px 32px 40px; }
+section { margin-top: 44px; }
+h2 { font-size: 17px; font-weight: 800; letter-spacing: 0.04em; padding-bottom: 8px; border-bottom: 2px solid var(--ink); margin-bottom: 18px; }
+p + p { margin-top: 10px; }
+code { font-family: var(--mono); font-size: 12.5px; background: var(--slate-soft); padding: 1px 5px; border-radius: 3px; }
+.plain { padding-left: 1.4em; }
+.plain li { margin-bottom: 6px; }
+.decided { border: 1px solid var(--teal); background: var(--teal-soft); padding: 14px 18px; font-size: 14px; }
+.decided b { color: var(--teal); }
+.rejected { border: 1px solid var(--line); background: var(--paper); padding: 12px 16px; font-size: 13px; color: var(--sub); }
+footer { border-top: 2px solid var(--ink); padding: 14px 32px; font-size: 11.5px; color: var(--sub); font-family: var(--mono); }
+footer a { color: var(--azure); }
+@media (max-width: 640px) {
+  .tb-spine { display: none; }
+  main { padding-left: 18px; padding-right: 18px; }
+  .tb-main { padding: 20px 18px 16px; }
+  .sheet { margin: 0 0 40px; border-left: none; border-right: none; }
+}
+@media print { body { background: #fff; } .sheet { border: none; margin: 0; max-width: none; } section { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header class="titleblock">
+  <div class="tb-spine">検討フェーズ・判断記録</div>
+  <div class="tb-main">
+    <p class="tb-eyebrow">ADR / 0003</p>
+    <h1>テンプレートの記述形式(Bicep採用)</h1>
+    <dl class="tb-meta">
+      <div><dt>状態</dt><dd>決定済み</dd></div>
+      <div><dt>日付</dt><dd>2026-07-05</dd></div>
+      <div><dt>正本</dt><dd>docs/project/adr/0003-select-template-format.md</dd></div>
+      <div><dt>関連</dt><dd>ADR-0001(P1)/ 02_requirements(P-6)</dd></div>
+    </dl>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2>決定</h2>
+  <div class="decided">
+    <b>Bicepを採用する。</b>テンプレート=Bicepファイル一式+パラメータ+手順書(README)とし、ランナー(<a href="note-cicd.html" style="color: var(--teal);">N-4</a>)から <code>az deployment</code> で実行できる形にする。
+  </div>
+</section>
+
+<section>
+  <h2>背景</h2>
+  <p>検証の成果物は「テンプレートから環境一式を短時間で用意できる」こと(前提P-6、合格ライン1件1時間以内(仮))。環境を何で記述するかがテンプレートの再現性と保守性を決める。形式の指定はなく、起案者から選定を一任された。</p>
+</section>
+
+<section>
+  <h2>選択肢</h2>
+  <ul class="plain">
+    <li><b>案1: Bicep</b> — Azure純正のIaC。ARMテンプレートの簡潔な記法で、状態ファイルの管理が不要</li>
+    <li><b>案2: Terraform</b> — 汎用IaC。マルチクラウド対応だが、状態(state)の置き場所・ロック・保護という運用が別途必要</li>
+    <li><b>案3: azコマンドの手順書</b> — 逐次実行の手順書。学習は最小だが、再現性が実行順と手作業に依存する</li>
+  </ul>
+</section>
+
+<section>
+  <h2>理由(案1を採用)</h2>
+  <ul class="plain">
+    <li>Azure専用の本件でマルチクラウド対応の価値がなく、Terraformのstate管理という新しい運用を持ち込まずに済む</li>
+    <li>宣言的で再現性がある。手順書方式の「実行順や環境差で結果が変わる」問題を避けられる</li>
+    <li>az CLIとVS Code拡張に組み込み済みで、1人運用の学習コストが最小</li>
+    <li>App Service・Private Endpoint・Private DNSといった構成要素への追従が純正ゆえに速い</li>
+    <li>撤去(US-06-S3)もリソースグループ削除+再デプロイで担保でき、検証の作り直しが安全にできる</li>
+  </ul>
+</section>
+
+<section>
+  <h2>捨てた案とその理由</h2>
+  <div class="rejected">
+    <p><b>案2(Terraform)</b>: 技術としては同等以上だが、state管理の運用が増える。会社標準がTerraformに定まった場合に再評価する。</p>
+    <p><b>案3(手順書方式)</b>: 検証初日の学習用途には使えるが、成果物(P-6)に求める再現性を満たさない。</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  正本: docs/project/adr/0003-select-template-format.md | 本HTMLは閲覧用の配布物。編集はMarkdown側で行う | <a href="adr-0001.html">ADR-0001へ</a> | <a href="index.html">文書一覧へ</a> | 2026-07-05
+</footer>
+
+</div>
+</body>
+</html>

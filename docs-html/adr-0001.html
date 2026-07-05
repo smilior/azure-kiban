@@ -134,6 +134,13 @@ tr.reject td { color: var(--sub); background: var(--paper); }
   font-size: 13.5px;
 }
 .pending b { color: var(--warn); }
+.decided {
+  border: 1px solid var(--teal);
+  background: var(--teal-soft);
+  padding: 14px 18px;
+  font-size: 14px;
+}
+.decided b { color: var(--teal); }
 footer {
   border-top: 2px solid var(--ink);
   padding: 14px 32px;
@@ -164,7 +171,7 @@ footer a { color: var(--azure); }
     <p class="tb-eyebrow">ADR / 0001</p>
     <h1>アプリ公開基盤の環境パターン選定</h1>
     <dl class="tb-meta">
-      <div><dt>状態</dt><dd>起案(選択肢の列挙まで・決定待ち)</dd></div>
+      <div><dt>状態</dt><dd>決定済み(P1: App Service集約)</dd></div>
       <div><dt>日付</dt><dd>2026-07-05</dd></div>
       <div><dt>正本</dt><dd>docs/project/adr/0001-select-hosting-pattern.md</dd></div>
       <div><dt>関連</dt><dd>02_requirements.md(P-1〜P-6)</dd></div>
@@ -202,7 +209,7 @@ footer a { color: var(--azure); }
       <tr><td><b>ap-xxxx</b>(アプリ実行)</td><td>Dockerコンテナでアプリを稼働</td><td>App Service(1アプリ=1 App、1プランに相乗り)/ Container Apps(1アプリ=1コンテナアプリ)</td><td>US-09の相乗りに対応</td></tr>
       <tr><td><b>PostgreSQL</b></td><td>1インスタンスをDB分割で全アプリが共用</td><td>Azure Database for PostgreSQL Flexible Server(プライベート接続)</td><td>現行と同一製品。アプリ別DB分割(US-09-S2)も同じ方式</td></tr>
       <tr><td><b>Redis</b></td><td>セッション管理・SSO後のトークン格納</td><td>基盤の認証機能へ委譲(Easy Auth・Managed Identity)。アプリ独自キャッシュが必要な場合のみAzure Cache for Redis</td><td>Redisそのものは原則不要になる。US-07-S2で代替を確認</td></tr>
-      <tr><td><b>ファイル保存</b>(BLOB相当)</td><td>VMディスク・コンテナボリュームへの保存</td><td>Azure Blob Storage(Storageアカウント+Private Endpoint)</td><td>対応する要件ストーリーが未設定。検証に含めるならUS-10を追加</td></tr>
+      <tr><td><b>ファイル保存</b>(BLOB相当)</td><td>VMディスク・コンテナボリュームへの保存</td><td>Azure Blob Storage(Storageアカウント+Private Endpoint)</td><td>US-10で検証する(アプリごとに保存領域を分離)</td></tr>
       <tr><td><b>ap-auth</b>(認証)</td><td>M365 Graph APIでSSO、OAuthのメール送信</td><td>Microsoft Entra ID+App Service組み込み認証(Easy Auth)、またはアプリ内でMSAL。メール送信はGraph APIを継続利用</td><td>US-07で検証。共通認証の自作をやめ基盤機能に委譲できるかが論点</td></tr>
     </tbody>
   </table>
@@ -297,7 +304,7 @@ footer a { color: var(--azure); }
       <tr><td>Private DNSゾーン</td><td>2〜4</td><td>privatelink.postgres〜・redis〜・azurewebsites〜等の名前解決</td><td class="num">約50円/ゾーン</td></tr>
       <tr><td>PostgreSQL Flexible Server(B1ms)</td><td>1</td><td>共有DB。委任サブネット接続ならPE不要</td><td class="num">約3,000〜4,500円</td></tr>
       <tr><td>(任意)Azure Cache for Redis+PE</td><td>0〜1</td><td>アプリ独自キャッシュが必要な場合のみ。認証セッション・トークンは基盤が保持するため既定では作らない</td><td class="num">約2,500円+PE約1,100円(作る場合)</td></tr>
-      <tr><td>Blob Storage+PE(任意)</td><td>1</td><td>ファイル保存(US-10を追加する場合のみ)</td><td class="num">数百円+PE約1,100円</td></tr>
+      <tr><td>Blob Storage+PE</td><td>1</td><td>ファイル保存(US-10)。アプリごとに保存領域を分離</td><td class="num">数百円+PE約1,100円</td></tr>
       <tr><td>Container Apps環境+Jobs</td><td>1</td><td>GitHub Actionsセルフホストランナー(都度起動)</td><td class="num">ほぼ従量(アイドル約0円)</td></tr>
       <tr><td>Entra IDアプリ登録</td><td>アプリ数分</td><td>SSO(US-07)</td><td class="num">0円</td></tr>
       <tr><td>App Service証明書</td><td>1</td><td>カスタムドメインのTLS(前提P-5)</td><td class="num">年額約1万円</td></tr>
@@ -434,7 +441,7 @@ footer a { color: var(--azure); }
 <text x="825.0" y="187.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Flexible Server・PE</text>
 <rect x="750" y="260" width="150" height="56" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
 <text x="825.0" y="286.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Blob Storage</text>
-<text x="825.0" y="303.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE・任意(US-10)</text>
+<text x="825.0" y="303.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE・US-10</text>
 <rect x="340" y="160" width="150" height="64" rx="8" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
 <text x="415.0" y="190.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Private Endpoint</text>
 <text x="415.0" y="207.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">受信の入口・私設IP</text>
@@ -520,7 +527,7 @@ footer a { color: var(--azure); }
 <text x="825.0" y="187.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Flexible Server・PE</text>
 <rect x="750" y="260" width="150" height="56" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
 <text x="825.0" y="286.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Blob Storage</text>
-<text x="825.0" y="303.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE・任意(US-10)</text>
+<text x="825.0" y="303.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE・US-10</text>
 <rect x="340" y="130" width="150" height="56" rx="8" fill="#dff2ef" stroke="#0e7a6e" stroke-width="1.4"/>
 <text x="415.0" y="156.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">PE(静的)</text>
 <text x="415.0" y="173.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Private Endpoint</text>
@@ -613,7 +620,7 @@ footer a { color: var(--azure); }
 <text x="825.0" y="187.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Flexible Server・PE</text>
 <rect x="750" y="260" width="150" height="56" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
 <text x="825.0" y="286.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Blob Storage</text>
-<text x="825.0" y="303.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE・任意(US-10)</text>
+<text x="825.0" y="303.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE・US-10</text>
 <rect x="340" y="130" width="150" height="56" rx="8" fill="#dff2ef" stroke="#0e7a6e" stroke-width="1.4"/>
 <text x="415.0" y="156.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">PE(静的)</text>
 <text x="415.0" y="173.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Private Endpoint</text>
@@ -706,7 +713,7 @@ footer a { color: var(--azure); }
 <text x="825.0" y="187.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Flexible Server・PE</text>
 <rect x="750" y="260" width="150" height="56" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
 <text x="825.0" y="286.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Blob Storage</text>
-<text x="825.0" y="303.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE・任意(US-10)</text>
+<text x="825.0" y="303.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE・US-10</text>
 <rect x="340" y="140" width="160" height="96" rx="8" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
 <text x="420.0" y="186.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Application Gateway</text>
 <text x="420.0" y="203.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">内部・TLS終端/振り分け</text>
@@ -784,9 +791,27 @@ footer a { color: var(--azure); }
 
 <section id="decision">
   <h2>決定</h2>
-  <div class="pending">
-    <b>未定。</b>パターンの精査(費用見積もり・構築手数の比較)後に記入する。理由・捨てた案も決定後に記入する。現時点で除外が確定しているのは C3(P-1抵触)・C4(P-3抵触)・DB2/R2(保守委譲の目的に反する)・P6(検証規模に過剰)。
+  <div class="decided">
+    <b>P1(App Service集約)を採用する。</b>静的サイトも動的アプリも1つの構成系統(App Service+Easy Auth+App Service証明書)に載せる。あわせて次を確定する: 検証・本番は環境別プラン(<a href="note-environments.html" style="color: var(--teal);">N-5</a>)/URLはアプリ別サブドメイン方式+ワイルドカード証明書1枚(<a href="note-dns-ssl.html" style="color: var(--teal);">N-3</a>、前提P-9)/CI/CDはC1(<a href="note-cicd.html" style="color: var(--teal);">N-4</a>)/テンプレートの記述形式はBicep(<a href="adr-0003.html" style="color: var(--teal);">ADR-0003</a>)。
   </div>
+
+  <h3>理由</h3>
+  <ul class="plain">
+    <li>前提との整合が最も高い。App Service証明書(P-5)とEasy Auth(P-7)が追加の作り込みなしで成立するのはP1だけ</li>
+    <li>第1段のゴール「テンプレートから環境がすぐできる」に対し、構成が1系統でテンプレートが最小になる</li>
+    <li>相乗り(US-09)がプラン共有で自然に実現し、費用が固定で予算(月2万円級)に収まる</li>
+    <li>静的サイトへのSSO(US-07-S4)を動的と同一機構で実現できる</li>
+    <li>現行VM運用(1台にコンテナn個)と概念が同型で、本番移行の判断がしやすい</li>
+  </ul>
+
+  <h3>捨てた案とその理由</h3>
+  <ul class="plain">
+    <li><b>P2(SWA+App Service)</b>: 証明書・DNS・認証設定が2系統になり、検証コストの増分に見合う利点が静的配信の軽さしかない</li>
+    <li><b>P3(SWA+Container Apps)</b>: ゼロスケールの費用効率は魅力だが、証明書(P-5)・Easy Auth(P-7)と齟齬。再評価の条件は4つ — 利用が散発的でゼロスケールの節約が効く規模になった/HTTP以外の常駐ワークロードが増えた/アプリ単位の独立スケールが必要になった/コンテナイメージ運用を続けたい。いずれかが顕在化したら見直す(N-4)。なおACA自体はランナー(C1)として採用しており、全面不採用ではない</li>
+    <li><b>P4(AppGW集約)</b>: 装置単体で予算を超える固定費に加え、静的サイトのSSOに作り込みが必要</li>
+    <li><b>P5(全Container Apps)</b>: P3を採らない以上、選ぶ理由がない</li>
+    <li><b>P6(AKS)・C3(一時パブリック開放)・C4(手動デプロイ)・DB2/R2(自前コンテナ運用)</b>: 選択肢の節に記載のとおり除外を確定する</li>
+  </ul>
 </section>
 
 </main>
