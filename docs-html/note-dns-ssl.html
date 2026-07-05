@@ -222,6 +222,13 @@ footer a { color: var(--azure); }
     <li>親の名前そのもの(<code>apps.example.co.jp</code>)もワイルドカードの対象外。ポータルを置くなら名前を第1階層に置く(<code>portal.apps...</code>)</li>
     <li>命名規約: <b>アプリ名=サブドメイン名=Web App名</b>に揃えると、テンプレートの手順(DNS登録・証明書割り当て・Entra登録)を機械的にできる</li>
   </ul>
+  <h3 style="font-size:13.5px; letter-spacing:0.05em; margin:22px 0 8px;">環境(検証・本番)を跨いだ利用</h3>
+  <p>ワイルドカード証明書は環境の区別を知らず、第1階層の名前すべてをカバーする。本番 <code>bihin.apps.example.co.jp</code> と検証 <code>bihin-dev.apps.example.co.jp</code> は同じ1枚でカバーされる。環境をハイフンで同一階層に置く規約は、このためでもある。</p>
+  <ul class="plain" style="margin-top:10px;">
+    <li><b>運用</b>: Key Vaultにある同じ証明書を、検証用・本番用の両Web Appにインポートするだけ。枚数課金ではないため費用は増えず、自動更新にも両方が追従する</li>
+    <li><b>留意点1</b>: 1階層ルールを守り続ける。環境が増えても(<code>bihin-stg</code> 等)第1階層に置く限り1枚で足りる</li>
+    <li><b>留意点2</b>: 検証と本番が同じ秘密鍵を共有することになる。App Serviceでは鍵をエクスポート不可のままプラットフォーム管理にできるため実務リスクは小さいが、検証環境の統制レベルを下げる運用(外部委託者の利用等)を始める場合は、環境別に親サブドメインと証明書を分ける(費用は2枚分)</li>
+  </ul>
 </section>
 
 <section id="rotate">
