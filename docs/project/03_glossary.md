@@ -23,6 +23,8 @@ docs/project/02_requirements.md をはじめ他の文書と用語を一致させ
 | トークン | SSO認証後に発行されるアクセス資格情報。現行はRedisに格納。新基盤では基盤のトークンストアまたはManaged Identityで扱う。 | - |
 | Easy Auth | App Serviceの組み込み認証。アプリの手前でSSO誘導・トークン検証・セッション発行・トークン保管を代行する。 | - |
 | Managed Identity | Azureがアプリ自身に発行するパスワード不要の身分証。シークレットを保存せずGraph API等のトークンをその場で取得する。 | - |
+| Blob Storage | アプリのファイルを保存するAzureのストレージ。アプリごとに保存領域を分離する(US-10)。 | - |
+| Application Access Policy | システムとしてのメール送信で、送信可能なメールボックスを限定するExchange Onlineの統制設定(US-11-S2)。 | - |
 | カスタムドメイン | 基盤発行のURLに代えて割り当てる社内のドメイン名。 | - |
 | App Service証明書 | Azureが発行・更新を管理するSSL証明書サービス。カスタムドメインのHTTPS化に使う。 | - |
 | 社内VNet | Azure上の社内既存の仮想ネットワーク。基盤の全リソースをここに接続する。 | - |

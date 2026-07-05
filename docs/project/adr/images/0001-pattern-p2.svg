@@ -53,7 +53,7 @@
 <text x="825.0" y="187.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Flexible Server・PE</text>
 <rect x="750" y="260" width="150" height="56" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
 <text x="825.0" y="286.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Blob Storage</text>
-<text x="825.0" y="303.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE・任意(US-10)</text>
+<text x="825.0" y="303.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE・US-10</text>
 <rect x="340" y="130" width="150" height="56" rx="8" fill="#dff2ef" stroke="#0e7a6e" stroke-width="1.4"/>
 <text x="415.0" y="156.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">PE(静的)</text>
 <text x="415.0" y="173.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Private Endpoint</text>
