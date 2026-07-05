@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 430" font-family="Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif">
+<defs>
+<marker id="am" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0d6fbe"/></marker>
+<marker id="as" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#5f6f80"/></marker>
+<marker id="at" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0e7a6e"/></marker>
+</defs>
+<rect x="0" y="0" width="1200" height="430" fill="#ffffff"/>
+<text x="24" y="34" font-size="16" fill="#182635" text-anchor="start" font-weight="bold">認可の3層モデル — リクエストが通る3つの関門</text>
+<text x="24" y="53" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">認証(誰であるか)はADR-0002。本図は「誰が閲覧・操作できるか」の制御がどこで働くかを示す。</text>
+<rect x="30" y="180" width="140" height="64" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="100.0" y="204" font-size="13" fill="#182635" text-anchor="middle" font-weight="bold">利用者</text>
+<text x="100.0" y="222" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">社内PC・ブラウザ</text>
+<text x="345" y="108" font-size="12" fill="#0d6fbe" text-anchor="middle" font-weight="bold">層1</text>
+<text x="625" y="108" font-size="12" fill="#0d6fbe" text-anchor="middle" font-weight="bold">層2</text>
+<text x="905" y="108" font-size="12" fill="#0d6fbe" text-anchor="middle" font-weight="bold">層3</text>
+<rect x="230" y="120" width="230" height="130" rx="8" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="345.0" y="144" font-size="13" fill="#182635" text-anchor="middle" font-weight="bold">Entra ID 割り当て</text>
+<text x="345.0" y="162" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">アプリ単位の名簿</text>
+<text x="345.0" y="177" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">割り当てのない人は</text>
+<text x="345.0" y="192" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">ログイン自体が失敗</text>
+<rect x="510" y="120" width="230" height="130" rx="8" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="625.0" y="144" font-size="13" fill="#182635" text-anchor="middle" font-weight="bold">Easy Auth</text>
+<text x="625.0" y="162" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">認証の門番(ADR-0002)</text>
+<text x="625.0" y="177" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">未認証・他テナントを拒否</text>
+<text x="625.0" y="192" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">静的サイトはここまでで制御</text>
+<rect x="790" y="120" width="230" height="130" rx="8" fill="#dff2ef" stroke="#0e7a6e" stroke-width="1.4"/>
+<text x="905.0" y="144" font-size="13" fill="#182635" text-anchor="middle" font-weight="bold">アプリ内認可</text>
+<text x="905.0" y="162" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">App Roles: 機能ロール</text>
+<text x="905.0" y="177" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">(rolesクレームを読む)</text>
+<text x="905.0" y="192" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">DB: 業務データ依存の権限</text>
+<rect x="1070" y="155" width="100" height="64" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="1120.0" y="179" font-size="13" fill="#182635" text-anchor="middle" font-weight="bold">画面・</text>
+<text x="1120.0" y="197" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">データ</text>
+<polyline points="170,200 224,200" fill="none" stroke="#0d6fbe" stroke-width="2" marker-end="url(#am)"/>
+<polyline points="460,185 504,185" fill="none" stroke="#0d6fbe" stroke-width="2" marker-end="url(#am)"/>
+<polyline points="740,185 784,185" fill="none" stroke="#0d6fbe" stroke-width="2" marker-end="url(#am)"/>
+<polyline points="1020,185 1064,185" fill="none" stroke="#0d6fbe" stroke-width="2" marker-end="url(#am)"/>
+<text x="345" y="290" font-size="11" fill="#5f6f80" text-anchor="middle" font-weight="normal">変えるのは: 情シス(Entra管理)</text>
+<text x="625" y="290" font-size="11" fill="#5f6f80" text-anchor="middle" font-weight="normal">変えるのは: テンプレート設定</text>
+<text x="905" y="290" font-size="11" fill="#5f6f80" text-anchor="middle" font-weight="normal">変えるのは: 情シス(ロール割当)</text>
+<text x="905" y="307" font-size="11" fill="#5f6f80" text-anchor="middle" font-weight="normal">または業務部門(DBの管理画面)</text>
+<text x="24" y="360" font-size="12" fill="#182635" text-anchor="start" font-weight="normal">指針: まず層1で「入れる人」を絞り、機能の役割は層3のApp Rolesで表現する。</text>
+<text x="24" y="380" font-size="12" fill="#182635" text-anchor="start" font-weight="normal">業務データに連動する権限(案件ごとの担当のような)だけをDBに持たせ、権限テーブルの自作を最小にする。</text>
+</svg>
