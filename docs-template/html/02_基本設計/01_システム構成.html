@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>システム構成 ｜ {{PROJECT_NAME}} 設計書</title>
+<meta name="description" content="{{アプリ名}} のシステム全体構成・技術スタック・環境・CI/CD・リポジトリ運用を定義する。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/base.css">
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidePanel">
+    <div class="side-header">
+      <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="true" aria-label="メニューを閉じる" title="メニューを閉じる"><span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <div class="side-header-text">
+        <div class="brand"><a href="../index.html">設計書雛形</a><small>{{PROJECT_NAME}} / ap-template-v4</small></div>
+        <div class="side-title"><a href="../index.html">{{PROJECT_NAME}}</a></div>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="ドキュメント一覧">
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#01_要件定義">01 要件定義</a></span>
+        <ol>
+          <li><a href="../01_要件定義/01_プロジェクト概要.html"><span class="n">01</span>プロジェクト概要</a></li>
+          <li><a href="../01_要件定義/02_ペルソナ・ユーザーストーリー.html"><span class="n">02</span>ペルソナ・ユーザーストーリー</a></li>
+          <li><a href="../01_要件定義/03_機能要件.html"><span class="n">03</span>機能要件</a></li>
+          <li><a href="../01_要件定義/04_非機能要件.html"><span class="n">04</span>非機能要件</a></li>
+        </ol>
+      </div>
+      <div class="phase is-current">
+        <span class="phase-label"><a href="../index.html#02_基本設計">02 基本設計</a></span>
+        <ol>
+          <li><a class="active" href="../02_基本設計/01_システム構成.html"><span class="n">01</span>システム構成</a></li>
+          <li><a href="../02_基本設計/02_用語集.html"><span class="n">02</span>用語集</a></li>
+          <li><a href="../02_基本設計/03_機能設計.html"><span class="n">03</span>機能設計</a></li>
+          <li><a href="../02_基本設計/04_画面設計.html"><span class="n">04</span>画面設計</a></li>
+          <li><a href="../02_基本設計/05_DB設計.html"><span class="n">05</span>DB設計(論理)</a></li>
+          <li><a href="../02_基本設計/06_API設計.html"><span class="n">06</span>API設計</a></li>
+          <li><a href="../02_基本設計/07_認可設計.html"><span class="n">07</span>認可設計</a></li>
+          <li><a href="../02_基本設計/adr/0000_ADRテンプレート.html"><span class="n">A0</span>ADR テンプレート</a></li>
+          <li><a href="../02_基本設計/adr/0001_技術スタック(テンプレート既定).html"><span class="n">A1</span>ADR 技術スタック</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#03_詳細設計">03 詳細設計</a></span>
+        <ol>
+          <li><a href="../03_詳細設計/01_処理設計.html"><span class="n">01</span>処理設計</a></li>
+          <li><a href="../03_詳細設計/02_テーブル定義.html"><span class="n">02</span>テーブル定義</a></li>
+          <li><a href="../03_詳細設計/03_単体テスト観点.html"><span class="n">03</span>単体テスト観点</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#04_テスト">04 テスト</a></span>
+        <ol>
+          <li><a href="../04_テスト/01_テスト計画.html"><span class="n">01</span>テスト計画</a></li>
+          <li><a href="../04_テスト/02_結合テストケース.html"><span class="n">02</span>結合テストケース</a></li>
+          <li><a href="../04_テスト/03_総合テストケース.html"><span class="n">03</span>総合テストケース</a></li>
+          <li><a href="../04_テスト/04_受け入れテストシナリオ.html"><span class="n">04</span>受け入れテストシナリオ</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#05_リリース">05 リリース</a></span>
+        <ol>
+          <li><a href="../05_リリース/01_リリース計画.html"><span class="n">01</span>リリース計画</a></li>
+          <li><a href="../05_リリース/02_リリースノート.html"><span class="n">02</span>リリースノート</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#06_運用">06 運用</a></span>
+        <ol>
+          <li><a href="../06_運用/01_監視・障害対応.html"><span class="n">01</span>監視・障害対応</a></li>
+          <li><a href="../06_運用/02_バックアップ・メンテナンス.html"><span class="n">02</span>バックアップ・メンテナンス</a></li>
+        </ol>
+      </div>
+    </nav>
+    <div class="side-meta">全 24 文書 + インデックス<br>正本: Markdown(docs-template/)</div>
+  </aside>
+  <main>
+    <div class="hero">
+      <div class="kicker">02 基本設計 · 01/07</div>
+      <h1>システム構成</h1>
+      <p class="lede">{{アプリ名}} のシステム全体構成・技術スタック・環境・CI/CD・リポジトリ運用を定義する。</p>
+    </div>
+    <div class="prose">
+      <div class="callout">
+        <p class="callout-title">記入ガイド</p>
+        <p>{{アプリ名}} {{用途}} を自アプリの値に置換する。技術スタック・環境構成の既定値は事実。変更時はADR必須。</p>
+        <p>技術スタックの表はテンプレート既定。覆す場合は adr/ に新規ADRを追加し、本表を更新する。</p>
+      </div>
+
+      <h2>全体構成図</h2>
+      <figure class="diagram">
+        <figcaption>全体構成図</figcaption>
+        <img src="../assets/diagrams/system-architecture.svg" alt="全体構成図。利用者ブラウザから nginx リバースプロキシを経て FastAPI アプリへ接続する。認証は共有基盤の AP-Auth コンテナが /auth/login からのトークン要求を受け、EntraID(外部IdP)から取得したトークンを Redis に保存する。アプリは App DB(PostgreSQL)・Redis を参照し、読み取り専用の外部認証DB ap-safedx に任意連携する。">
+        <p class="zoom-hint">クリックで拡大</p>
+      </figure>
+      <p>全コンテナは共有ネットワーク <code>shared_backend</code>（external）に接続する。App DB は Alembic マイグレーション対象、外部認証DB ap-safedx は参照専用でスキーマ変更しない。</p>
+      <p>認証は共有基盤の AP-Auth コンテナが担う。本アプリの <code>/auth/login</code> が AP-Auth へトークンを要求し、AP-Auth が EntraID から取得したトークンを Redis に保存する。アプリは Redis のセッションを参照して認証状態を判定する。</p>
+
+      <h2>技術スタック</h2>
+      <div class="tblwrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">分類</th>
+              <th scope="col">技術</th>
+              <th scope="col">備考</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Webフレームワーク</td><td>FastAPI</td><td>Python</td></tr>
+            <tr><td>画面</td><td>Jinja2 SSR + Alpine.js + Tailwind CSS</td><td>サーバーサイドレンダリング</td></tr>
+            <tr><td>認証</td><td>AP-Auth コンテナ + EntraID（外部IdP）</td><td>トークンは Redis に保存。<code>/auth/login</code> 経由で認証</td></tr>
+            <tr><td>ORM / マイグレーション</td><td>SQLAlchemy + Alembic</td><td>App DB のみ対象</td></tr>
+            <tr><td>アプリDB</td><td>PostgreSQL</td><td>本アプリ固有データ</td></tr>
+            <tr><td>外部認証DB</td><td>PostgreSQL（ap-safedx）</td><td>読み取り専用・ユーザー情報参照（任意連携）</td></tr>
+            <tr><td>セッション</td><td>Redis</td><td>TTL は SESSION_TTL_HOURS</td></tr>
+            <tr><td>リバースプロキシ</td><td>nginx</td><td>プロキシ基盤</td></tr>
+            <tr><td>実行基盤</td><td>Docker Compose</td><td>ネットワーク shared_backend</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>技術選定の根拠は <a href="adr/0001_技術スタック(テンプレート既定).html">adr/0001_技術スタック(テンプレート既定)</a> を参照。</p>
+
+      <h2>環境構成</h2>
+      <div class="tblwrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">環境</th>
+              <th scope="col">ENV_TYPE</th>
+              <th scope="col">設定ファイル</th>
+              <th scope="col">用途</th>
+              <th scope="col">デプロイ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>DEV（ローカル）</td><td>DEV</td><td>.env.DEV</td><td>開発者ローカル・検証</td><td>手動</td></tr>
+            <tr><td>ステージング</td><td>STG</td><td>.env.STG</td><td>リリース前確認</td><td>develop push で自動</td></tr>
+            <tr><td>本番</td><td>PRD</td><td>.env.PRD</td><td>本番運用</td><td>main push で自動</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>環境切替は <code>ENV_TYPE</code> と <code>.env.&lt;ENV&gt;</code> で行う。秘密情報は GitHub Secrets / Variables で管理し、self-hosted runner が <code>.env.&lt;ENV&gt;</code> を生成する。平文はデプロイ後に保持しない。</p>
+
+      <h2>起動順序</h2>
+      <figure class="diagram">
+        <figcaption>起動順序</figcaption>
+        <img src="../assets/diagrams/startup-order.svg" alt="起動順序。データ基盤(PostgreSQL + Redis)、プロキシ基盤(nginx)、アプリの順に起動する。">
+        <p class="zoom-hint">クリックで拡大</p>
+      </figure>
+      <p>逆順で起動すると <code>network shared_backend not found</code> になる。事前に <code>docker network create shared_backend</code> を実行する。</p>
+
+      <h2>CI/CD フロー</h2>
+      <figure class="diagram">
+        <figcaption>CI/CD フロー</figcaption>
+        <img src="../assets/diagrams/cicd-flow.svg" alt="CI/CD フロー。develop への push で STG デプロイ、main への push で PRD デプロイを実行する。">
+        <p class="zoom-hint">クリックで拡大</p>
+      </figure>
+      <p>GitHub Actions（self-hosted runner）で実行する。develop / main への push をトリガーに Self-Hosted Runner + GitHub Actions が自動デプロイする。DEV はローカルで手動デプロイする。ブランチ運用は develop→STG / main→PRD。</p>
+
+      <h2>リポジトリ運用の流れ</h2>
+      <figure class="diagram">
+        <figcaption>リポジトリ運用の流れ</figcaption>
+        <img src="../assets/diagrams/repo-flow.svg" alt="リポジトリ運用フロー。テンプレート ap-template-v4 から管理者が app-setup スキルで生成物を作り、git init と push で個別リポジトリを用意し、開発者がそれを clone する一方向の流れ。">
+        <p class="zoom-hint">クリックで拡大</p>
+      </figure>
+      <p>テンプレートリポジトリへは push しない。管理者が個別リポジトリを用意し、開発者はそれを clone して開発する。一方向の流れを保つ。</p>
+    </div>
+    <nav class="page-nav">
+      <a class="page-nav-item" href="../01_要件定義/04_非機能要件.html"><span class="page-nav-dir">← 前</span><span class="page-nav-title">非機能要件</span><span class="page-nav-phase">01 要件定義</span></a>
+      <a class="page-nav-item page-nav-next" href="02_用語集.html"><span class="page-nav-dir">次 →</span><span class="page-nav-title">用語集</span><span class="page-nav-phase">02 基本設計</span></a>
+    </nav>
+    <div class="foot">{{PROJECT_NAME}} 設計書雛形 · 正本は Markdown(docs-template/) · <a href="../index.html">インデックス</a></div>
+  </main>
+</div>
+<dialog class="zoom-dlg" id="zoomDlg">
+  <div class="zoom-bar">
+    <span class="title">図解</span>
+    <button type="button" data-z="out" title="縮小">−</button>
+    <button type="button" data-z="in" title="拡大">＋</button>
+    <button type="button" data-z="reset" title="全体表示">リセット</button>
+    <button type="button" data-z="close" title="閉じる">閉じる ✕</button>
+  </div>
+  <div class="zoom-stage" id="zoomStage"></div>
+</dialog>
+<script src="../assets/nav.js" defer></script>
+<script src="../assets/enhance.js" defer></script>
+</body>
+</html>
