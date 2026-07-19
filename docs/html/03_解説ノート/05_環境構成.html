@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>環境構成の考え方 ｜ Azureアプリ公開基盤(検証フェーズ)</title>
+<meta name="description" content="検証と本番の並行運用を解説するノート。環境別プランによる隔離、URL・証明書・認証の環境差、ブランチによるデプロイ振り分けを整理する。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/base.css">
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidePanel">
+    <div class="side-header">
+      <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="true" aria-label="メニューを閉じる" title="メニューを閉じる"><span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <div class="side-header-text">
+        <div class="brand"><a href="../index.html">案件ドキュメント</a><small>azure-kiban / 検証フェーズ</small></div>
+        <div class="side-title"><a href="../index.html">Azureアプリ公開基盤(検証フェーズ)</a></div>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="ドキュメント一覧">
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#01_要件定義">01 要件定義</a></span>
+        <ol>
+          <li><a href="../01_要件定義/01_企画書.html"><span class="n">01</span>企画書</a></li>
+          <li><a href="../01_要件定義/02_要件定義.html"><span class="n">02</span>要件定義</a></li>
+          <li><a href="../01_要件定義/03_用語集.html"><span class="n">03</span>用語集</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#02_ADR">02 ADR(設計判断)</a></span>
+        <ol>
+          <li><a href="../02_ADR/0001_環境パターン選定.html"><span class="n">01</span>環境パターン選定</a></li>
+          <li><a href="../02_ADR/0002_認証方式.html"><span class="n">02</span>認証方式</a></li>
+          <li><a href="../02_ADR/0003_テンプレート形式.html"><span class="n">03</span>テンプレート形式</a></li>
+        </ol>
+      </div>
+      <div class="phase is-current">
+        <span class="phase-label"><a href="../index.html#03_解説ノート">03 解説ノート</a></span>
+        <ol>
+          <li><a href="../03_解説ノート/01_AppServiceプラン.html"><span class="n">01</span>App Serviceプラン</a></li>
+          <li><a href="../03_解説ノート/02_認可.html"><span class="n">02</span>認可の考え方</a></li>
+          <li><a href="../03_解説ノート/03_CICD.html"><span class="n">03</span>CI/CD</a></li>
+          <li><a href="../03_解説ノート/04_DNSとSSL.html"><span class="n">04</span>DNS・SSL</a></li>
+          <li><a class="active" href="../03_解説ノート/05_環境構成.html"><span class="n">05</span>環境構成</a></li>
+        </ol>
+      </div>
+    </nav>
+    <div class="side-meta">全 11 文書 + インデックス<br>正本: Markdown(docs/)</div>
+  </aside>
+  <main>
+    <div class="hero">
+      <div class="kicker">03 解説ノート · 05/05</div>
+      <h1>環境構成の考え方</h1>
+      <p class="lede">現行の開発・検証機・本番機の3層構成をApp Serviceへ写像し、検証と本番の並行運用の形を整理する。</p>
+    </div>
+    <div class="prose">
+      <h2>現行との対応</h2>
+      <figure class="diagram"><figcaption>環境構成の写像</figcaption><img src="../assets/diagrams/note-env-mapping.svg" alt="環境構成の写像"><p class="zoom-hint">クリックで拡大</p></figure>
+      <div class="tblwrap"><table><thead><tr><th scope="col">現行</th><th scope="col">App Serviceでの対応物</th></tr></thead><tbody>
+        <tr><td>開発(ローカル)</td><td>変わらない。ローカルで動くアプリがそのままデプロイ対象になる</td></tr>
+        <tr><td>検証機(VM・常時稼働)</td><td>検証用プラン(B1)+検証用Web App ×n</td></tr>
+        <tr><td>本番機(VM・常時稼働)</td><td>本番用プラン(B1)+本番用Web App ×n</td></tr>
+      </tbody></table></div>
+      <h2>環境別プランにする理由(隔離)</h2>
+      <ul>
+        <li>プランを環境別に分けることで、「検証の負荷が本番に影響しない」という現行のVM分離と同じ隔離を保つ</li>
+        <li>同一プランへの検証・本番の相乗りはプラン代が半分になるが、この隔離が失われるため、常時並行運用では採らない</li>
+        <li>費用はB1×2で約4,000円/月+PE類(概算)。VM2台の保守込みコストより軽い。Private Endpointを使う構成のため、B1が実質の最小SKUで「検証だけ無料枠」のような節約はできない</li>
+      </ul>
+      <h2>URL・証明書・認証</h2>
+      <ul>
+        <li>URL: 本番 <code>bihin.apps.example.co.jp</code>、検証 <code>bihin-dev.apps.example.co.jp</code>(ハイフンで同一階層に置く規約。N-3)</li>
+        <li>証明書: ワイルドカード1枚を両環境のWeb Appで共用する(N-3の「環境を跨いだ利用」)</li>
+        <li>認証: Easy AuthとEntra IDの割り当ては環境別に設定できる。検証環境はレビュー担当だけに割り当てて見せる相手を絞れる(N-1の層1)</li>
+      </ul>
+      <h2>データベース</h2>
+      <ul>
+        <li>現行と同型なのは、検証用・本番用のPostgreSQL Flexible Serverを分けること(検証側は最小SKU)</li>
+        <li>節約案として1インスタンス内で検証DB・本番DBを分離する形もあるが、本番のバックアップとメンテナンス時間の独立性を考えると、本番展開時はインスタンス分離が無難</li>
+      </ul>
+      <h2>CI/CD(ブランチで振り分け)</h2>
+      <ul>
+        <li>developブランチへのpush→検証Web App、mainへのマージ→本番Web App。ワークフローYAMLの書き分けだけで実現し、ランナー(N-4)は共用のまま増えない</li>
+        <li>環境ごとの設定差(DB接続先)は、Web Appごとのアプリ設定(環境変数)に持たせる</li>
+      </ul>
+      <h2>スロットの位置づけ</h2>
+      <ul>
+        <li>常設の検証環境がある運用では、デプロイスロットは「検証環境の代替」ではなく「本番プラン内のリリース関所」という別の役割になる(Standardプラン以上が必要)</li>
+        <li>完成形は併用: 機能確認・利用部門レビュー=常設の検証Web App → リリース判定の最終確認と瞬間切替=本番のstagingスロット</li>
+        <li>本検証フェーズは常設の検証Web App方式だけで進める</li>
+      </ul>
+      <h2>利用部門(お客さん)のレビュー</h2>
+      <ul>
+        <li>検証Web AppのURLを案内し、Entra IDの割り当てで見せる相手を絞る</li>
+        <li>スロット方式との違い: スロットは「レビューされた実体がそのまま本番に入れ替わる」ことを構造的に保証する。別Web App方式は同じコードを本番へ再デプロイするため厳密には別の実体になるが、通常の社内システムではこれで十分</li>
+      </ul>
+    </div>
+    <nav class="page-nav">
+      <a class="page-nav-item" href="04_DNSとSSL.html"><span class="page-nav-dir">← 前</span><span class="page-nav-title">DNSとSSL証明書の考え方</span><span class="page-nav-phase">03 解説ノート</span></a>
+      <span class="page-nav-item page-nav-next is-disabled"><span class="page-nav-dir">次 →</span><span class="page-nav-title">最終ページ</span><span class="page-nav-phase"></span></span>
+    </nav>
+    <div class="foot">Azureアプリ公開基盤(検証フェーズ) · 正本は Markdown(docs/) · <a href="../index.html">インデックス</a></div>
+  </main>
+</div>
+<dialog class="zoom-dlg" id="zoomDlg">
+  <div class="zoom-bar">
+    <span class="title">図解</span>
+    <button type="button" data-z="out" title="縮小">−</button>
+    <button type="button" data-z="in" title="拡大">＋</button>
+    <button type="button" data-z="reset" title="全体表示">リセット</button>
+    <button type="button" data-z="close" title="閉じる">閉じる ✕</button>
+  </div>
+  <div class="zoom-stage" id="zoomStage"></div>
+</dialog>
+<script src="../assets/nav.js" defer></script>
+<script src="../assets/enhance.js" defer></script>
+</body>
+</html>

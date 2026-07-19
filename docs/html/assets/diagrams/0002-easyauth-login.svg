@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 560" font-family="Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif">
+<defs>
+<marker id="am" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0d6fbe"/></marker>
+<marker id="aw" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#a34d0c"/></marker>
+<marker id="at" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0e7a6e"/></marker>
+</defs>
+<rect x="0" y="0" width="1080" height="560" fill="#ffffff"/>
+<text x="24" y="34" font-size="16" fill="#182635" text-anchor="start" font-weight="bold">Easy Auth ログインの流れ(P1・閉域網)</text>
+<text x="24" y="53" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">Entra IDは閉域内のアプリへ通信しない。戻り(⑤)はブラウザが社内DNS→PE経由で行う。</text>
+<rect x="55" y="70" width="190" height="48" rx="8" fill="#eef1f4" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="150.0" y="92.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">ブラウザ</text>
+<text x="150.0" y="109.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">利用者(社内NW)</text>
+<line x1="150" y1="118" x2="150" y2="500" stroke="#9fb0c0" stroke-width="1" stroke-dasharray="4 4"/>
+<rect x="375" y="70" width="190" height="48" rx="8" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="470.0" y="92.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Easy Auth</text>
+<text x="470.0" y="109.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">App Serviceの門番</text>
+<line x1="470" y1="118" x2="470" y2="500" stroke="#9fb0c0" stroke-width="1" stroke-dasharray="4 4"/>
+<rect x="605" y="70" width="190" height="48" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="700.0" y="92.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">アプリ</text>
+<text x="700.0" y="109.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">コード変更なし</text>
+<line x1="700" y1="118" x2="700" y2="500" stroke="#9fb0c0" stroke-width="1" stroke-dasharray="4 4"/>
+<rect x="835" y="70" width="190" height="48" rx="8" fill="#eef1f4" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="930.0" y="92.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Entra ID</text>
+<text x="930.0" y="109.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">M365</text>
+<line x1="930" y1="118" x2="930" y2="500" stroke="#9fb0c0" stroke-width="1" stroke-dasharray="4 4"/>
+<polyline points="150,150 470,150" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="217.5" y="133" width="185" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="310.0" y="142" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">① アプリへアクセス(未ログイン)</text>
+<polyline points="470,190 150,190" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="191.5" y="173" width="237" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="310.0" y="182" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">② Entra IDのログインへリダイレクト</text>
+<polyline points="150,230 930,230" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="452.5" y="213" width="175" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="540.0" y="222" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">③ M365アカウントでログイン</text>
+<polyline points="930,270 150,270" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="348.0" y="253" width="384" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="540.0" y="262" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">④ redirect_uriへ戻る指示(Entraはアプリへ通信しない)</text>
+<polyline points="150,310 470,310" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="113.0" y="293" width="394" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="310.0" y="302" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">⑤ /.auth/login/aad/callback(社内DNS→PE)</text>
+<polyline points="470,400 700,400" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="382.5" y="383" width="405" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="585.0" y="392" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">⑦ 利用者情報をヘッダーで渡す(X-MS-CLIENT-PRINCIPAL)</text>
+<polyline points="700,440 150,440" fill="none" stroke="#0d6fbe" stroke-width="1.8" marker-end="url(#am)"/>
+<rect x="311.5" y="423" width="227" height="16" fill="#ffffff" opacity="0.95"/>
+<text x="425.0" y="432" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">⑧ 画面表示(以後はCookieで素通し)</text>
+<rect x="330" y="336" width="280" height="34" rx="6" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.2"/>
+<text x="470" y="350" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">⑥ トークン検証・保管(トークンストア)</text>
+<text x="470" y="364" font-size="11" fill="#182635" text-anchor="middle" font-weight="normal">セッションCookie発行</text>
+<text x="24" y="530" font-size="11" fill="#0e7a6e" text-anchor="start" font-weight="normal">トークンの保管先はEasy Authのトークンストア。セッション・トークン用途のRedisは使わない。</text>
+</svg>

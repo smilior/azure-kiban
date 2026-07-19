@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>認可の考え方 ｜ Azureアプリ公開基盤(検証フェーズ)</title>
+<meta name="description" content="認可を3層モデル(Entra ID割り当て・Easy Auth・アプリ内認可)で整理する解説ノート。App RolesとDB権限の使い分け、1業務アプリ=1 Web Appの指針を示す。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/base.css">
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidePanel">
+    <div class="side-header">
+      <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="true" aria-label="メニューを閉じる" title="メニューを閉じる"><span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <div class="side-header-text">
+        <div class="brand"><a href="../index.html">案件ドキュメント</a><small>azure-kiban / 検証フェーズ</small></div>
+        <div class="side-title"><a href="../index.html">Azureアプリ公開基盤(検証フェーズ)</a></div>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="ドキュメント一覧">
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#01_要件定義">01 要件定義</a></span>
+        <ol>
+          <li><a href="../01_要件定義/01_企画書.html"><span class="n">01</span>企画書</a></li>
+          <li><a href="../01_要件定義/02_要件定義.html"><span class="n">02</span>要件定義</a></li>
+          <li><a href="../01_要件定義/03_用語集.html"><span class="n">03</span>用語集</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#02_ADR">02 ADR(設計判断)</a></span>
+        <ol>
+          <li><a href="../02_ADR/0001_環境パターン選定.html"><span class="n">01</span>環境パターン選定</a></li>
+          <li><a href="../02_ADR/0002_認証方式.html"><span class="n">02</span>認証方式</a></li>
+          <li><a href="../02_ADR/0003_テンプレート形式.html"><span class="n">03</span>テンプレート形式</a></li>
+        </ol>
+      </div>
+      <div class="phase is-current">
+        <span class="phase-label"><a href="../index.html#03_解説ノート">03 解説ノート</a></span>
+        <ol>
+          <li><a href="../03_解説ノート/01_AppServiceプラン.html"><span class="n">01</span>App Serviceプラン</a></li>
+          <li><a class="active" href="../03_解説ノート/02_認可.html"><span class="n">02</span>認可の考え方</a></li>
+          <li><a href="../03_解説ノート/03_CICD.html"><span class="n">03</span>CI/CD</a></li>
+          <li><a href="../03_解説ノート/04_DNSとSSL.html"><span class="n">04</span>DNS・SSL</a></li>
+          <li><a href="../03_解説ノート/05_環境構成.html"><span class="n">05</span>環境構成</a></li>
+        </ol>
+      </div>
+    </nav>
+    <div class="side-meta">全 11 文書 + インデックス<br>正本: Markdown(docs/)</div>
+  </aside>
+  <main>
+    <div class="hero">
+      <div class="kicker">03 解説ノート · 02/05</div>
+      <h1>認可の考え方</h1>
+      <p class="lede">認証の先にある認可 — 誰が閲覧・操作できるかをどこで制御するか — をEntra ID割り当て・Easy Auth・アプリ内認可の3層で整理する。</p>
+    </div>
+    <div class="prose">
+      <h2>3層モデル</h2>
+      <figure class="diagram"><figcaption>認可の3層モデル</figcaption><img src="../assets/diagrams/note-authz-layers.svg" alt="認可の3層モデル"><p class="zoom-hint">クリックで拡大</p></figure>
+      <div class="tblwrap"><table><thead><tr><th scope="col">層</th><th scope="col">場所</th><th scope="col">制御する内容</th><th scope="col">変えるのは誰</th></tr></thead><tbody>
+        <tr><td>層1</td><td>Entra ID 割り当て</td><td>アプリ単位の名簿。「割り当てが必要=はい」にすると、割り当てのない人はログイン自体が失敗する。全社員に開くなら「いいえ」</td><td>情シス(Entra管理)</td></tr>
+        <tr><td>層2</td><td>Easy Auth</td><td>未認証・他テナントのアカウントを拒否する(ADR-0002)</td><td>テンプレートの設定</td></tr>
+        <tr><td>層3</td><td>アプリ内認可</td><td>App Roles(機能ロール)またはDB(業務データ依存の権限)</td><td>情シス(ロール割当)または業務部門(DBの管理画面)</td></tr>
+      </tbody></table></div>
+      <p>指針: まず層1で「入れる人」を絞り、機能の役割は層3のApp Rolesで表現する。業務データに連動する権限だけをDBに持たせ、権限テーブルの自作を最小にする。</p>
+
+      <h2>静的コンテンツの認可</h2>
+      <p>静的サイトにはコードがないため、層3は使えない。層1(Entra割り当て)で完結させる。一律権限(見られるか見られないか)しか要らない静的サイトには、これで必要十分になる。サイト単位のSSO有効/無効はUS-07-S4で検証する。</p>
+
+      <h2>App Rolesの仕組み</h2>
+      <p>App Rolesは「アプリ登録ごとに定義する、そのアプリ専用のロール辞書」である。アプリAの<code>Admin</code>とアプリBの<code>Admin</code>は別物で、同じ人がAでAdmin・BでViewerという割り当てもできる。</p>
+      <ol>
+        <li><strong>定義</strong>(アプリ登録側): そのアプリ専用のロールを任意の名前で定義する(例: <code>Admin</code> / <code>Approver</code> / <code>Viewer</code>)。各ロールはvalue(トークンに入る文字列)を持つ</li>
+        <li><strong>割り当て</strong>(エンタープライズアプリケーション側): 誰がどのロールかをユーザー単位またはグループ単位で割り当てる。1人に複数ロールも可</li>
+        <li><strong>利用</strong>(アプリ側): ログイン時にトークンの<code>roles</code>クレームへ割り当てロールが入る。Easy Auth経由なら<code>X-MS-CLIENT-PRINCIPAL</code>ヘッダーで届くため、アプリは「rolesにApproverが含まれるか」を見るだけ。権限テーブルも権限管理画面も自作不要</li>
+      </ol>
+      <p>制約: ロールは静的な辞書で、追加・変更はアプリ登録の更新(情シス側の操作)になる。業務データに連動する動的な権限には向かない。</p>
+      <p>注意: グループ単位のロール割り当てはEntra ID P1ライセンス以上が必要(個人単位は無償枠で可)。テナントのライセンスは要確認。</p>
+
+      <h2>Entra IDで持つ権限とDBで持つ権限の使い分け</h2>
+      <div class="tblwrap"><table><thead><tr><th scope="col"></th><th scope="col">Entra ID(App Roles)</th><th scope="col">DB(アプリ内)</th></tr></thead><tbody>
+        <tr><td>向くケース</td><td>役割が少数で安定(管理者/承認者/一般)。機能単位の制御</td><td>役割が業務データに結びつく(例: 備品カテゴリごとの承認者)。レコード単位の制御</td></tr>
+        <tr><td>誰が変える</td><td>情シス・Entra管理者。監査もEntra側に一元化</td><td>業務部門がアプリ画面から付け替える</td></tr>
+        <tr><td>アプリの実装</td><td>rolesクレームを読むだけ</td><td>権限テーブルと管理画面を自作</td></tr>
+      </tbody></table></div>
+      <p>まずApp Rolesで表現できないかを考え、「業務部門が画面から権限を変えたい」「レコード単位で効かせたい」が出た部分だけDBに持つ。</p>
+
+      <h2>アプリ登録と業務アプリの対応(1:1を保つ)</h2>
+      <p>App Roles・層1の名簿は<strong>アプリ登録単位</strong>で働く。1つのWeb Appに複数の業務アプリを同居させる(1:n)と、次の制約を受ける。</p>
+      <ul>
+        <li>入口制御が全業務一括になり、「業務Aは総務部だけ、業務Bは全社員」という見せ分けができない</li>
+        <li>ロール辞書が1冊に混在し、誰がどの業務の権限を持つかの棚卸しがしにくくなる</li>
+        <li>Easy Auth設定・セッションも共通になる</li>
+      </ul>
+      <p>指針: <strong>見せる相手が業務ごとに違うなら、Web Appを分けて「1業務アプリ=1 Web App=1アプリ登録」の1:1を保つ</strong>。App Serviceプランの相乗りではWeb Appが業務アプリごとに分かれるため、この1:1は自然に保たれる(解説ノート「App Serviceプランの考え方」を参照)。1:1を保つ追加費用はPE(約1,100円/月)だけである。</p>
+
+      <h2>要件との対応</h2>
+      <ul>
+        <li>権限マトリクス(02_requirements 非機能要件)の「公開アプリの閲覧」= 層1で制御する</li>
+        <li>「デプロイ・基盤構成の変更・リソース削除」= アプリの認可ではなく、Azureリソース操作の権限(Azure RBAC)で制御する。基本設計(04)で扱う</li>
+        <li>本検証のスコープはUS-07(入口の認証)まで。App Roles・DB認可は本番アプリの設計時の論点として本書に記録しておく</li>
+      </ul>
+    </div>
+    <nav class="page-nav">
+      <a class="page-nav-item" href="01_AppServiceプラン.html"><span class="page-nav-dir">← 前</span><span class="page-nav-title">App Serviceプランの考え方</span><span class="page-nav-phase">03 解説ノート</span></a>
+      <a class="page-nav-item page-nav-next" href="03_CICD.html"><span class="page-nav-dir">次 →</span><span class="page-nav-title">閉域でのCI/CDの考え方</span><span class="page-nav-phase">03 解説ノート</span></a>
+    </nav>
+    <div class="foot">Azureアプリ公開基盤(検証フェーズ) · 正本は Markdown(docs/) · <a href="../index.html">インデックス</a></div>
+  </main>
+</div>
+<dialog class="zoom-dlg" id="zoomDlg">
+  <div class="zoom-bar">
+    <span class="title">図解</span>
+    <button type="button" data-z="out" title="縮小">−</button>
+    <button type="button" data-z="in" title="拡大">＋</button>
+    <button type="button" data-z="reset" title="全体表示">リセット</button>
+    <button type="button" data-z="close" title="閉じる">閉じる ✕</button>
+  </div>
+  <div class="zoom-stage" id="zoomStage"></div>
+</dialog>
+<script src="../assets/nav.js" defer></script>
+<script src="../assets/enhance.js" defer></script>
+</body>
+</html>

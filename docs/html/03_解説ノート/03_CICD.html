@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>閉域でのCI/CDの考え方 ｜ Azureアプリ公開基盤(検証フェーズ)</title>
+<meta name="description" content="閉域網でGit push起点の自動デプロイを成立させる方法を解説するノート。セルフホストランナー(ACAジョブ)とKEDAによる引き取り型の構成を示す。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/base.css">
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidePanel">
+    <div class="side-header">
+      <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="true" aria-label="メニューを閉じる" title="メニューを閉じる"><span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <div class="side-header-text">
+        <div class="brand"><a href="../index.html">案件ドキュメント</a><small>azure-kiban / 検証フェーズ</small></div>
+        <div class="side-title"><a href="../index.html">Azureアプリ公開基盤(検証フェーズ)</a></div>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="ドキュメント一覧">
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#01_要件定義">01 要件定義</a></span>
+        <ol>
+          <li><a href="../01_要件定義/01_企画書.html"><span class="n">01</span>企画書</a></li>
+          <li><a href="../01_要件定義/02_要件定義.html"><span class="n">02</span>要件定義</a></li>
+          <li><a href="../01_要件定義/03_用語集.html"><span class="n">03</span>用語集</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#02_ADR">02 ADR(設計判断)</a></span>
+        <ol>
+          <li><a href="../02_ADR/0001_環境パターン選定.html"><span class="n">01</span>環境パターン選定</a></li>
+          <li><a href="../02_ADR/0002_認証方式.html"><span class="n">02</span>認証方式</a></li>
+          <li><a href="../02_ADR/0003_テンプレート形式.html"><span class="n">03</span>テンプレート形式</a></li>
+        </ol>
+      </div>
+      <div class="phase is-current">
+        <span class="phase-label"><a href="../index.html#03_解説ノート">03 解説ノート</a></span>
+        <ol>
+          <li><a href="../03_解説ノート/01_AppServiceプラン.html"><span class="n">01</span>App Serviceプラン</a></li>
+          <li><a href="../03_解説ノート/02_認可.html"><span class="n">02</span>認可の考え方</a></li>
+          <li><a class="active" href="../03_解説ノート/03_CICD.html"><span class="n">03</span>CI/CD</a></li>
+          <li><a href="../03_解説ノート/04_DNSとSSL.html"><span class="n">04</span>DNS・SSL</a></li>
+          <li><a href="../03_解説ノート/05_環境構成.html"><span class="n">05</span>環境構成</a></li>
+        </ol>
+      </div>
+    </nav>
+    <div class="side-meta">全 11 文書 + インデックス<br>正本: Markdown(docs/)</div>
+  </aside>
+  <main>
+    <div class="hero">
+      <div class="kicker">03 解説ノート · 03/05</div>
+      <h1>閉域でのCI/CDの考え方</h1>
+      <p class="lede">pushから公開までの自動化を、パブリック公開なしの閉域網でどう成立させるかを整理する。</p>
+    </div>
+    <div class="prose">
+<h2>なぜ「普通の自動デプロイ」が使えないか</h2>
+<p>App Serviceにはデプロイセンター(GitHub連携の自動デプロイ)があるが、その実行役は<strong>GitHubのクラウド上のランナー</strong>で、パブリックインターネットからApp Serviceのデプロイ受け口(SCMエンドポイント)へ届ける仕組みである。本件では受け口もPrivate Endpointの内側に入るため、パブリックからは届かない。デプロイ時だけ受け口を公開する案(ADR-0001のC3)はP-1に抵触するため除外した。</p>
+<p>結論: <strong>デプロイの実行役を壁の内側(VNet内)に置く</strong>。これがセルフホストランナー(ACAジョブ)の役目である。</p>
+<h2>原則: 押し込みではなく引き取り</h2>
+<p>閉域にWebhook(押し込み)は届かない。代わりに、<strong>すべての通信を「内→外」の引き取りで組む</strong>。</p>
+<ul>
+<li>見張り役は<strong>KEDA</strong> — 「仕事の在庫を見て、コンテナの数を0〜nに増減させる自動係」。OSSだがACAに組み込み済みで、設定だけで使える</li>
+<li>KEDAが数十秒おきに外向きHTTPSでGitHubのジョブキューを確認し、仕事がある時だけランナーを起動する。空振りなら起動もしない</li>
+<li>GitHubから閉域内への接続は一度も発生しない。ランナー自身のジョブ受領も外向き接続で行う</li>
+</ul>
+<h2>全体の流れ</h2>
+<figure class="diagram"><figcaption>閉域でのCI/CDの流れ</figcaption><img src="../assets/diagrams/note-cicd-flow.svg" alt="閉域でのCI/CDの流れ"><p class="zoom-hint">クリックで拡大</p></figure>
+<ol>
+<li>開発者がpushする。GitHubがワークフローのジョブをGitHub側のキューに積む(この時点で閉域内には何も届かない)</li>
+<li>VNet内のKEDAスケーラーが外向きpollでキューを確認する</li>
+<li>仕事を見つけたら、ランナーのコンテナを0→1で起動する</li>
+<li>ランナーが外向き接続でコードとジョブ内容を取得する</li>
+<li>コンテナ内でビルドし、成果物をZipに固める</li>
+<li><code>az webapp deploy</code> でZipをApp ServiceのSCM受け口へ搬入する。受け口はPrivate DNS→PEの私設IPで解決されるため、VNet内のランナーからだけ届く</li>
+<li>App Serviceが展開・再起動する(ここは全自動。ランナーの仕事は「届けたら終わり」)</li>
+<li>ジョブが終わるとランナーは消えて0に戻る。待機中の費用は約0円</li>
+</ol>
+<p>デプロイ権限は<strong>ランナーのManaged Identity</strong>にRBACで与える。GitHubにもコンテナにもシークレットを保存しない — ランナーがAzureの中にいるからこそ使える手で、この構成の隠れた利点である。</p>
+<h2>役割分担 — 頭脳と体は疎結合</h2>
+<figure class="diagram"><figcaption>役割分担</figcaption><img src="../assets/diagrams/note-cicd-roles.svg" alt="役割分担"><p class="zoom-hint">クリックで拡大</p></figure>
+<div class="tblwrap"><table><thead><tr><th scope="col">役割</th><th scope="col">担当</th><th scope="col">例え</th></tr></thead><tbody>
+<tr><td>何をするか(手順書)</td><td>GitHub Actionsのワークフロー(リポジトリ内のYAML)</td><td>台本</td></tr>
+<tr><td>いつ動くか(検知)</td><td>GitHubのキュー+KEDAの外向きpoll</td><td>演出家</td></tr>
+<tr><td>どこで動くか(実行環境)</td><td>ACAジョブのランナー(使い捨て・実行秒課金)</td><td>呼ばれた時だけ現れる舞台</td></tr>
+<tr><td>どこで公開するか</td><td>App Service(展開・再起動は自動)</td><td>本番の劇場</td></tr>
+</tbody></table></div>
+<p>疎結合の利点: パイプラインの変更はYAMLを直すだけでACA側は無関係。逆にランナーの置き場を変えても(例: 常駐VM化)台本は1行も変わらない。GitHubを別のGitサービスに替えても、作業場の仕組みは流用できる。</p>
+<h2>なぜランナーの置き場がACAジョブか(代替との比較)</h2>
+<div class="tblwrap"><table><thead><tr><th scope="col"></th><th scope="col">ACAジョブ</th><th scope="col">Azure Functions</th><th scope="col">常駐VM</th><th scope="col">AKS</th></tr></thead><tbody>
+<tr><td>実行時間の上限</td><td>実質なし</td><td>従量プランは最大10分。ビルドが収まらない</td><td>なし</td><td>なし</td></tr>
+<tr><td>実行環境</td><td>任意のコンテナを丸ごと実行</td><td>関数コード専用。ランナーの同居に不向き</td><td>自由</td><td>自由</td></tr>
+<tr><td>GitHubキュー連携</td><td>KEDAスケーラーが組み込み</td><td>なし(自前実装になる)</td><td>常駐エージェント</td><td>KEDA(自前運用)</td></tr>
+<tr><td>待機中の費用</td><td>約0円(0にスケール)</td><td>0円だが上記制約で不成立</td><td>VM代が常時発生</td><td>ノード代が常時発生</td></tr>
+<tr><td>保守</td><td>なし</td><td>-</td><td>OSパッチが復活(本末転倒)</td><td>クラスタ運用(過剰)</td></tr>
+</tbody></table></div>
+<p>エフェメラルなジョブ実行環境としてはACAジョブが最有力。ただし利用者向けアプリの基盤としては別の評価になる(ADR-0001。証明書P-5・Easy Auth・即応答の要件でApp Serviceに軍配)。「アプリはApp Service、裏方ジョブはACA」という適材適所に落ち着く。</p>
+<h2>運用の注意</h2>
+<ul>
+<li><strong>反映のラグ</strong>: pushから起動まで数十秒(ポーリング間隔+コンテナ起動)。デプロイ用途では問題にならないが、即時Webhookの感覚ではない</li>
+<li><strong>暴走対策は必須</strong>: 従量課金はジョブがハングすると課金が続く。<strong>ジョブのタイムアウトと同時実行数の上限をテンプレートに必ず入れる</strong>(US-06-S2の予算監視とセットで効く)</li>
+<li><strong>成立条件はP-8のみ</strong>: VNet→GitHub.comの外向きHTTPS。確認済み</li>
+</ul>
+<h2>アプリが増えたときの運用</h2>
+<p>ランナーは全アプリ共用のため、アプリ数に比例して増える運用はない。押さえる点は3つ。</p>
+<ul>
+<li><strong>アプリ追加時の作業はゼロにする(設計で決まる)</strong>: ランナーは<strong>Organizationレベルで登録</strong>し、組織内の全リポジトリで共用する。アプリ追加時は新リポジトリのワークフローYAMLに <code>runs-on: self-hosted</code> を書くだけで、KEDA・ACA側の設定は触らない。リポジトリ単位の登録は作業がアプリ数に比例するため採らない</li>
+<li><strong>唯一のチューニングは並列上限</strong>: 複数アプリが同時にpushすると、KEDAはランナーを0→nに並列起動する。同時実行の上限を超えた分は順番待ちになるだけで壊れない。デプロイの待ち時間が伸びてきたら上限を上げる。課金は実行秒のため、並列が増えても費用は使った分だけ</li>
+<li><strong>定常運用はGitHub接続用資格情報の更新だけ</strong>: KEDAがキューを確認するにはGitHubへの認証情報(PATまたはGitHub App)が要る。有効期限の管理と更新をRunbookに載せる</li>
+</ul>
+    </div>
+    <nav class="page-nav">
+      <a class="page-nav-item" href="02_認可.html"><span class="page-nav-dir">← 前</span><span class="page-nav-title">認可の考え方</span><span class="page-nav-phase">03 解説ノート</span></a>
+      <a class="page-nav-item page-nav-next" href="04_DNSとSSL.html"><span class="page-nav-dir">次 →</span><span class="page-nav-title">DNSとSSL証明書の考え方</span><span class="page-nav-phase">03 解説ノート</span></a>
+    </nav>
+    <div class="foot">Azureアプリ公開基盤(検証フェーズ) · 正本は Markdown(docs/) · <a href="../index.html">インデックス</a></div>
+  </main>
+</div>
+<dialog class="zoom-dlg" id="zoomDlg">
+  <div class="zoom-bar">
+    <span class="title">図解</span>
+    <button type="button" data-z="out" title="縮小">−</button>
+    <button type="button" data-z="in" title="拡大">＋</button>
+    <button type="button" data-z="reset" title="全体表示">リセット</button>
+    <button type="button" data-z="close" title="閉じる">閉じる ✕</button>
+  </div>
+  <div class="zoom-stage" id="zoomStage"></div>
+</dialog>
+<script src="../assets/nav.js" defer></script>
+<script src="../assets/enhance.js" defer></script>
+</body>
+</html>

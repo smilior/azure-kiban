@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 672" font-family="Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif">
+<defs>
+<marker id="am" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0d6fbe"/></marker>
+<marker id="amr" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto"><polygon points="10 0, 0 3.5, 10 7" fill="#0d6fbe"/></marker>
+<marker id="aw" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#a34d0c"/></marker>
+<marker id="awr" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto"><polygon points="10 0, 0 3.5, 10 7" fill="#a34d0c"/></marker>
+<marker id="as" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#5f6f80"/></marker>
+<marker id="asr" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto"><polygon points="10 0, 0 3.5, 10 7" fill="#5f6f80"/></marker>
+</defs>
+<rect x="0" y="0" width="1160" height="672" fill="#ffffff"/>
+<text x="24" y="36" font-size="17" fill="#182635" text-anchor="start" font-weight="bold">P4: Application Gateway集約型 — リクエスト/レスポンスの流れ</text>
+<text x="24" y="55" font-size="11.5" fill="#5f6f80" text-anchor="start" font-weight="normal">内部AppGWがTLS終端とホスト振り分けを一元化(現行nginxに最も近い形)。装置分の固定費が乗る。</text>
+<rect x="20" y="80" width="250" height="440" rx="6" fill="none" stroke="#9fb0c0" stroke-width="1.3" stroke-dasharray="7 4"/>
+<text x="32" y="100" font-size="11.5" fill="#5f6f80" text-anchor="start" font-weight="bold">社内ネットワーク</text>
+<rect x="40" y="120" width="210" height="64" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="145.0" y="150.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">利用者</text>
+<text x="145.0" y="167.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">社内PC・ブラウザ</text>
+<rect x="40" y="230" width="210" height="56" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="145.0" y="256.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">社内DNS</text>
+<text x="145.0" y="273.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">カスタムドメイン → 私設IP</text>
+<rect x="40" y="330" width="210" height="64" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="145.0" y="360.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">開発者</text>
+<text x="145.0" y="377.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">git push</text>
+<rect x="320" y="80" width="590" height="490" rx="6" fill="none" stroke="#9fb0c0" stroke-width="1.3" stroke-dasharray="7 4"/>
+<text x="332" y="100" font-size="11.5" fill="#5f6f80" text-anchor="start" font-weight="bold">Azure 社内VNet</text>
+<text x="332" y="116" font-size="10" fill="#5f6f80" text-anchor="start" font-weight="normal">全リソース プライベート(パブリック公開なし)</text>
+<rect x="340" y="484" width="280" height="56" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="480.0" y="510.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">GitHub Actions ランナー</text>
+<text x="480.0" y="527.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Container Apps Jobs・都度起動</text>
+<rect x="930" y="150" width="210" height="60" rx="8" fill="#eef1f4" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="1035.0" y="178.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Microsoft Entra ID</text>
+<text x="1035.0" y="195.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">M365 / SSO</text>
+<rect x="930" y="470" width="210" height="60" rx="8" fill="#eef1f4" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="1035.0" y="498.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">GitHub.com</text>
+<text x="1035.0" y="515.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">アプリのリポジトリ</text>
+<polyline points="145,184 145,230" fill="none" stroke="#5f6f80" stroke-width="1.6" marker-end="url(#as)" marker-start="url(#asr)"/>
+<rect x="167.5" y="203.5" width="65" height="15.5" fill="#ffffff" opacity="0.95"/>
+<text x="200" y="212" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">① 名前解決</text>
+<polyline points="200,120 200,66 1035,66 1035,150" fill="none" stroke="#0d6fbe" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#am)" marker-start="url(#amr)"/>
+<rect x="671.5" y="53.5" width="317" height="15.5" fill="#ffffff" opacity="0.95"/>
+<text x="830" y="62" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">③ SSO認証(Easy Authが誘導 ↔ Entra ID)</text>
+<polyline points="145,394 145,596 1035,596 1035,530" fill="none" stroke="#a34d0c" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#aw)"/>
+<rect x="587.0" y="583.5" width="46" height="15.5" fill="#ffffff" opacity="0.95"/>
+<text x="610" y="592" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">push</text>
+<polyline points="620,508 930,508" fill="none" stroke="#a34d0c" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#aw)"/>
+<rect x="700.5" y="493.5" width="143" height="15.5" fill="#ffffff" opacity="0.95"/>
+<text x="772" y="502" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">ジョブ取得(外向きpoll)</text>
+<polyline points="480,484 480,336 614,336 614,318" fill="none" stroke="#a34d0c" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#aw)"/>
+<rect x="488.0" y="341.5" width="104" height="15.5" fill="#ffffff" opacity="0.95"/>
+<text x="540" y="350" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">デプロイ(PE経由)</text>
+<rect x="750" y="140" width="150" height="64" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="825.0" y="170.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">PostgreSQL</text>
+<text x="825.0" y="187.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">Flexible Server・PE</text>
+<rect x="750" y="260" width="150" height="56" rx="8" fill="#ffffff" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="825.0" y="286.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Blob Storage</text>
+<text x="825.0" y="303.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE・US-10</text>
+<rect x="340" y="140" width="160" height="96" rx="8" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="420.0" y="186.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Application Gateway</text>
+<text x="420.0" y="203.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">内部・TLS終端/振り分け</text>
+<rect x="530" y="130" width="190" height="60" rx="8" fill="#dff2ef" stroke="#0e7a6e" stroke-width="1.4"/>
+<text x="625.0" y="158.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">Storage 静的サイト</text>
+<text x="625.0" y="175.0" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">PE</text>
+<rect x="530" y="226" width="190" height="92" rx="6" fill="none" stroke="#0d6fbe" stroke-width="1.3" stroke-dasharray="7 4"/>
+<text x="542" y="246" font-size="11.5" fill="#5f6f80" text-anchor="start" font-weight="bold">App Service プラン(Linux)・Easy Auth</text>
+<rect x="545" y="262" width="160" height="44" rx="8" fill="#ffffff" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="625.0" y="288.0" font-size="12.5" fill="#182635" text-anchor="middle" font-weight="normal">アプリ App ×n</text>
+<polyline points="250,152 296,152 296,188 334,188" fill="none" stroke="#0d6fbe" stroke-width="2" marker-end="url(#am)" marker-start="url(#amr)"/>
+<rect x="172.5" y="127.5" width="239" height="15.5" fill="#ffffff" opacity="0.95"/>
+<text x="292" y="136" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">② リクエスト / ⑤ レスポンス(HTTPS)</text>
+<polyline points="500,162 524,162" fill="none" stroke="#0e7a6e" stroke-width="2" marker-end="url(#am)"/>
+<rect x="482.0" y="142.5" width="42" height="14.5" fill="#ffffff" opacity="0.95"/>
+<text x="503" y="150" font-size="9.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">振り分け</text>
+<polyline points="500,214 514,214 514,284 524,284" fill="none" stroke="#0d6fbe" stroke-width="2" marker-end="url(#am)"/>
+<polyline points="720,296 735,296 735,172 744,172" fill="none" stroke="#0d6fbe" stroke-width="2" marker-end="url(#am)"/>
+<polyline points="735,288 744,288" fill="none" stroke="#0d6fbe" stroke-width="2" marker-end="url(#am)"/>
+<line x1="735" y1="172" x2="735" y2="288" stroke="#0d6fbe" stroke-width="2"/>
+<rect x="688.0" y="223.5" width="94" height="15.5" fill="#ffffff" opacity="0.95"/>
+<text x="735" y="232" font-size="10.5" fill="#5f6f80" text-anchor="middle" font-weight="normal">④ データアクセス</text>
+<line x1="24" y1="618" x2="60" y2="618" stroke="#0d6fbe" stroke-width="2"/>
+<text x="66" y="622" font-size="10.5" fill="#5f6f80" text-anchor="start" font-weight="normal">リクエスト/レスポンス</text>
+<line x1="230" y1="618" x2="266" y2="618" stroke="#0d6fbe" stroke-width="1.6" stroke-dasharray="5 3"/>
+<text x="272" y="622" font-size="10.5" fill="#5f6f80" text-anchor="start" font-weight="normal">SSO認証</text>
+<line x1="360" y1="618" x2="396" y2="618" stroke="#a34d0c" stroke-width="1.6" stroke-dasharray="5 3"/>
+<text x="402" y="622" font-size="10.5" fill="#5f6f80" text-anchor="start" font-weight="normal">デプロイの流れ</text>
+<text x="520" y="622" font-size="10.5" fill="#5f6f80" text-anchor="start" font-weight="normal">PE = Private Endpoint(私設IPの受け口) / 社内NW〜VNet間は閉域接続(ExpressRoute・VPN)</text>
+</svg>

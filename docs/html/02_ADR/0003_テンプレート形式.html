@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>テンプレートの記述形式(Bicep採用) ｜ Azureアプリ公開基盤(検証フェーズ)</title>
+<meta name="description" content="基盤テンプレートの記述形式にBicepを採用したADR。Terraform・手順書方式との比較と採用理由を記す。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/base.css">
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidePanel">
+    <div class="side-header">
+      <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="true" aria-label="メニューを閉じる" title="メニューを閉じる"><span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <div class="side-header-text">
+        <div class="brand"><a href="../index.html">案件ドキュメント</a><small>azure-kiban / 検証フェーズ</small></div>
+        <div class="side-title"><a href="../index.html">Azureアプリ公開基盤(検証フェーズ)</a></div>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="ドキュメント一覧">
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#01_要件定義">01 要件定義</a></span>
+        <ol>
+          <li><a href="../01_要件定義/01_企画書.html"><span class="n">01</span>企画書</a></li>
+          <li><a href="../01_要件定義/02_要件定義.html"><span class="n">02</span>要件定義</a></li>
+          <li><a href="../01_要件定義/03_用語集.html"><span class="n">03</span>用語集</a></li>
+        </ol>
+      </div>
+      <div class="phase is-current">
+        <span class="phase-label"><a href="../index.html#02_ADR">02 ADR(設計判断)</a></span>
+        <ol>
+          <li><a href="../02_ADR/0001_環境パターン選定.html"><span class="n">01</span>環境パターン選定</a></li>
+          <li><a href="../02_ADR/0002_認証方式.html"><span class="n">02</span>認証方式</a></li>
+          <li><a class="active" href="../02_ADR/0003_テンプレート形式.html"><span class="n">03</span>テンプレート形式</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#03_解説ノート">03 解説ノート</a></span>
+        <ol>
+          <li><a href="../03_解説ノート/01_AppServiceプラン.html"><span class="n">01</span>App Serviceプラン</a></li>
+          <li><a href="../03_解説ノート/02_認可.html"><span class="n">02</span>認可の考え方</a></li>
+          <li><a href="../03_解説ノート/03_CICD.html"><span class="n">03</span>CI/CD</a></li>
+          <li><a href="../03_解説ノート/04_DNSとSSL.html"><span class="n">04</span>DNS・SSL</a></li>
+          <li><a href="../03_解説ノート/05_環境構成.html"><span class="n">05</span>環境構成</a></li>
+        </ol>
+      </div>
+    </nav>
+    <div class="side-meta">全 11 文書 + インデックス<br>正本: Markdown(docs/)</div>
+  </aside>
+  <main>
+    <div class="hero">
+      <div class="kicker">02 ADR(設計判断) · 03/03</div>
+      <h1>テンプレートの記述形式(Bicep採用)</h1>
+      <p class="lede">環境の記述形式がテンプレートの再現性と保守性を決めるため、Bicep・Terraform・手順書方式を比較しBicepを採用する。</p>
+    </div>
+    <div class="prose">
+<p>状態: 決定済み<br>日付: 2026-07-05<br>関連: 0001-select-hosting-pattern.md(P1)、02_requirements.md(前提P-6・合格ライン)</p>
+<h2>背景</h2>
+<p>検証の成果物は「テンプレートから環境一式を短時間で用意できる」こと(前提P-6、合格ライン1件1時間以内(仮))。環境を何で記述するかがテンプレートの再現性と保守性を決める。形式の指定はなく、起案者から選定を一任された。</p>
+<h2>選択肢</h2>
+<ul>
+<li>案1: Bicep — Azure純正のIaC。ARMテンプレートの簡潔な記法で、状態ファイルの管理が不要</li>
+<li>案2: Terraform — 汎用IaC。マルチクラウド対応だが、状態(state)の置き場所・ロック・保護という運用が別途必要</li>
+<li>案3: azコマンドの手順書 — 逐次実行の手順書。学習は最小だが、再現性が実行順と手作業に依存する</li>
+</ul>
+<h2>決定</h2>
+<p>案1(Bicep)を採用する。テンプレート=Bicepファイル一式+パラメータ+手順書(README)とし、ランナー(notes/cicd.md)から <code>az deployment</code> で実行できる形にする。</p>
+<h2>理由</h2>
+<ul>
+<li>Azure専用の本件でマルチクラウド対応の価値がなく、Terraformのstate管理という新しい運用を持ち込まずに済む</li>
+<li>宣言的で再現性がある。手順書方式の「実行順や環境差で結果が変わる」問題を避けられる</li>
+<li>az CLIとVS Code拡張に組み込み済みで、1人運用の学習コストが最小</li>
+<li>App Service・Private Endpoint・Private DNSといった構成要素への追従が純正ゆえに速い</li>
+<li>撤去(US-06-S3)もリソースグループ削除+再デプロイで担保でき、検証の作り直しが安全にできる</li>
+</ul>
+<h2>捨てた案とその理由</h2>
+<ul>
+<li>案2(Terraform): 技術としては同等以上だが、state管理の運用が増える。会社標準がTerraformに定まった場合に再評価する</li>
+<li>案3(手順書方式): 検証初日の学習用途には使えるが、成果物(P-6)に求める再現性を満たさない</li>
+</ul>
+    </div>
+    <nav class="page-nav">
+      <a class="page-nav-item" href="0002_認証方式.html"><span class="page-nav-dir">← 前</span><span class="page-nav-title">認証方式の選定(Easy Auth + Microsoft Entra ID)</span><span class="page-nav-phase">02 ADR(設計判断)</span></a>
+      <a class="page-nav-item page-nav-next" href="../03_解説ノート/01_AppServiceプラン.html"><span class="page-nav-dir">次 →</span><span class="page-nav-title">App Serviceプランの考え方</span><span class="page-nav-phase">03 解説ノート</span></a>
+    </nav>
+    <div class="foot">Azureアプリ公開基盤(検証フェーズ) · 正本は Markdown(docs/) · <a href="../index.html">インデックス</a></div>
+  </main>
+</div>
+<dialog class="zoom-dlg" id="zoomDlg">
+  <div class="zoom-bar">
+    <span class="title">図解</span>
+    <button type="button" data-z="out" title="縮小">−</button>
+    <button type="button" data-z="in" title="拡大">＋</button>
+    <button type="button" data-z="reset" title="全体表示">リセット</button>
+    <button type="button" data-z="close" title="閉じる">閉じる ✕</button>
+  </div>
+  <div class="zoom-stage" id="zoomStage"></div>
+</dialog>
+<script src="../assets/nav.js" defer></script>
+<script src="../assets/enhance.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Azureアプリ公開基盤の要件定義 ｜ Azureアプリ公開基盤(検証フェーズ)</title>
+<meta name="description" content="Azureアプリ公開基盤(検証フェーズ)の要件定義。前提条件、ユーザーストーリーUS-01〜US-11、受け入れ条件、検証マイルストーン、非機能要件を定める。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/base.css">
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidePanel">
+    <div class="side-header">
+      <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="true" aria-label="メニューを閉じる" title="メニューを閉じる"><span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <div class="side-header-text">
+        <div class="brand"><a href="../index.html">案件ドキュメント</a><small>azure-kiban / 検証フェーズ</small></div>
+        <div class="side-title"><a href="../index.html">Azureアプリ公開基盤(検証フェーズ)</a></div>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="ドキュメント一覧">
+      <div class="phase is-current">
+        <span class="phase-label"><a href="../index.html#01_要件定義">01 要件定義</a></span>
+        <ol>
+          <li><a href="../01_要件定義/01_企画書.html"><span class="n">01</span>企画書</a></li>
+          <li><a class="active" href="../01_要件定義/02_要件定義.html"><span class="n">02</span>要件定義</a></li>
+          <li><a href="../01_要件定義/03_用語集.html"><span class="n">03</span>用語集</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#02_ADR">02 ADR(設計判断)</a></span>
+        <ol>
+          <li><a href="../02_ADR/0001_環境パターン選定.html"><span class="n">01</span>環境パターン選定</a></li>
+          <li><a href="../02_ADR/0002_認証方式.html"><span class="n">02</span>認証方式</a></li>
+          <li><a href="../02_ADR/0003_テンプレート形式.html"><span class="n">03</span>テンプレート形式</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#03_解説ノート">03 解説ノート</a></span>
+        <ol>
+          <li><a href="../03_解説ノート/01_AppServiceプラン.html"><span class="n">01</span>App Serviceプラン</a></li>
+          <li><a href="../03_解説ノート/02_認可.html"><span class="n">02</span>認可の考え方</a></li>
+          <li><a href="../03_解説ノート/03_CICD.html"><span class="n">03</span>CI/CD</a></li>
+          <li><a href="../03_解説ノート/04_DNSとSSL.html"><span class="n">04</span>DNS・SSL</a></li>
+          <li><a href="../03_解説ノート/05_環境構成.html"><span class="n">05</span>環境構成</a></li>
+        </ol>
+      </div>
+    </nav>
+    <div class="side-meta">全 11 文書 + インデックス<br>正本: Markdown(docs/)</div>
+  </aside>
+  <main>
+    <div class="hero">
+      <div class="kicker">01 要件定義 · 02/03</div>
+      <h1>Azureアプリ公開基盤の要件定義</h1>
+      <p class="lede">社内閉域網内のAzure基盤を前提に、前提条件・ユーザーストーリー(US-01〜US-11)・受け入れ条件・非機能要件を定める要件の正本である。</p>
+    </div>
+    <div class="prose">
+<h2>前提条件</h2>
+<ul>
+<li>基盤はAzure上の社内閉域網内に構築する。パブリックネットワークへの公開は行わない</li>
+<li>公開URLへのアクセスは社内プライベートネットワークからに限る</li>
+<li>デプロイはGit push起点の自動デプロイとする。手動デプロイは行わない</li>
+<li>基盤の各リソースはすべてプライベートネットワーク構成とし、社内の既存VNetに接続する</li>
+<li>カスタムドメインのSSL証明書はApp Service証明書を利用する</li>
+<li>本検証の成果物は基盤テンプレート2種(静的・動的)と現行VM運用との実測比較である。検証アプリ3本は評価用であり、保守しない</li>
+<li>認証は基盤の組み込み認証(Easy Auth)+Microsoft Entra IDを利用する。認証コンポーネントは自作しない(ADR-0002)</li>
+<li>閉域網(VNet)からGitHub.comへの外向きHTTPSは許可されている。インバウンドの開放はしない</li>
+<li>公開URLはアプリ別サブドメイン方式(環境の区別はハイフンで同一階層)とし、ワイルドカード証明書1枚で賄う。親ドメインの実名は本番展開時に確定する(文書上はexample表記)</li>
+</ul>
+<h2>目指す体験(参考イメージ)</h2>
+<p>設計判断で迷ったときの方向付けに使う参考イメージ。ゴールや受け入れ判定の基準にはしない。本検証のゴールは、テンプレートからAzure上に環境一式を短時間で用意できることに置く。</p>
+<ul>
+<li>静的基盤: GitHub Pagesのように、リポジトリを用意してpushすれば公開URLが得られる</li>
+<li>動的基盤: Vercelのように、pushだけでビルドからデプロイまで進む。データベースはTursoのように、アプリ追加時に小さくすぐ用意できる(本件では共有PostgreSQL内にアプリ別データベースを切る)</li>
+<li>この体験の完全な再現は求めない。テンプレートと手順で、環境構築から公開までの手数を減らすことを優先する。基準は検証マイルストーンの合格ライン(1件あたり1時間以内(仮))とする</li>
+</ul>
+<h2>利用者像(ペルソナ)</h2>
+<div class="tblwrap"><table>
+<thead><tr><th scope="col">役割</th><th scope="col">主な業務</th><th scope="col">ITリテラシー</th><th scope="col">利用頻度</th><th scope="col">利用環境</th></tr></thead>
+<tbody>
+<tr><td>チーム開発者</td><td>AI駆動開発で作ったアプリのデプロイ・更新。検証中は起案者1名</td><td>Docker・Git・Azureを日常的に使う</td><td>週数回(検証期間中)</td><td>社用PC(Git・Azure CLI)</td></tr>
+<tr><td>基盤管理者</td><td>基盤テンプレートの整備、費用と稼働の記録。起案者が兼ねる</td><td>Azureのリソース管理と課金確認ができる</td><td>週数回</td><td>社用PC(Azureポータル・Azure CLI)</td></tr>
+<tr><td>アプリ利用者</td><td>公開された検証アプリをブラウザで使う。将来は最大500名程度</td><td>ばらつきが大きい。URLを開く以上の操作を求めない</td><td>検証中に随時</td><td>社内PC(ブラウザ、閉域網内)</td></tr>
+</tbody>
+</table></div>
+<h2>ユーザーストーリー一覧</h2>
+<p>静的基盤と動的基盤は設計を分けて進める(基本設計・ADRは基盤別に作る)。要件の正本は本書1本とし、対象基盤の列で区別する。</p>
+<div class="tblwrap"><table>
+<thead><tr><th scope="col">ID</th><th scope="col">ストーリー</th><th scope="col">対象基盤</th><th scope="col">優先度</th><th scope="col">段階</th></tr></thead>
+<tbody>
+<tr><td>US-01</td><td>チーム開発者として、静的基盤のテンプレートから静的サイトを公開したい。VM上の初期構築なしで公開するため。</td><td>静的</td><td>高</td><td>第1段</td></tr>
+<tr><td>US-02</td><td>チーム開発者として、動的基盤のテンプレートからPythonアプリを公開したい。</td><td>動的</td><td>高</td><td>第1段</td></tr>
+<tr><td>US-03</td><td>チーム開発者として、動的基盤のテンプレートからNext.jsアプリを公開したい。</td><td>動的</td><td>高</td><td>第1段</td></tr>
+<tr><td>US-04</td><td>チーム開発者として、公開済みアプリの変更をGit pushだけで反映したい。更新のたびのVM作業をなくすため。</td><td>共通</td><td>高</td><td>第2段</td></tr>
+<tr><td>US-05</td><td>チーム開発者として、動的基盤のアプリからPostgreSQLを利用したい。現行構成のDB利用を代替できるか確かめるため。</td><td>動的</td><td>中</td><td>第1段</td></tr>
+<tr><td>US-06</td><td>基盤管理者として、新規公開1件の所要時間と2基盤の月額費用を実測し、現行VM運用と比較したい。本番展開の判断材料にするため。</td><td>共通</td><td>高</td><td>第1段</td></tr>
+<tr><td>US-07</td><td>アプリ利用者として、M365アカウントのSSOで公開されたアプリ・静的サイトにログインしたい。現行ap-authの認証を代替できるか確かめるため。SSOの要否はアプリ・サイト単位で選べること。</td><td>共通</td><td>高</td><td>第2段</td></tr>
+<tr><td>US-08</td><td>チーム開発者として、公開URLにカスタムドメインを割り当てたい。利用者に案内するURLを固定するため。</td><td>共通</td><td>中</td><td>第2段</td></tr>
+<tr><td>US-09</td><td>チーム開発者として、稼働中の動的基盤に2本目以降のアプリを追加公開したい。共有基盤(PostgreSQL・認証)を作り直さずにアプリを増やすため。</td><td>動的</td><td>高</td><td>第2段</td></tr>
+<tr><td>US-10</td><td>チーム開発者として、動的基盤のアプリからファイルを保存・取得したい。現行構成のファイル保存を代替できるか確かめるため。</td><td>動的</td><td>中</td><td>第2段</td></tr>
+<tr><td>US-11</td><td>チーム開発者として、アプリからメールを送信したい。現行ap-authのメール送信を代替できるか確かめるため。</td><td>動的</td><td>中</td><td>第2段</td></tr>
+</tbody>
+</table></div>
+<h2>検証マイルストーン</h2>
+<p>要件は削らず、検証を2段階に分ける。第1段が本検証のゴール(テンプレートから環境一式を短時間で用意できる)に対応する。第2段は予算と期間の残りで実施し、未実施分は本番展開判断の宿題として記録する。</p>
+<div class="tblwrap"><table>
+<thead><tr><th scope="col">段階</th><th scope="col">ねらい</th><th scope="col">対象ストーリー</th></tr></thead>
+<tbody>
+<tr><td>第1段</td><td>テンプレートから環境を構築し、3形態のアプリを公開して実測する</td><td>US-01, US-02, US-03, US-05, US-06</td></tr>
+<tr><td>第2段</td><td>運用体験を仕上げる(更新の安全性・認証・複数アプリ・カスタムドメイン・ファイル保存・メール送信)</td><td>US-04, US-07, US-08, US-09, US-10, US-11</td></tr>
+</tbody>
+</table></div>
+<p>第1段の合格ラインと比較データ:</p>
+<ul>
+<li>合格ライン: テンプレートからの環境構築〜公開が1件あたり1時間以内(仮)。企画書の効果見込みと同値とし、実測後に見直す</li>
+<li>第1段の期間中に、現行VM運用側の比較値(新規公開1件の作業時間・月次保守時間・月額費用)を実測または見積もりで確定させる(企画書の要確認1を解消する)</li>
+</ul>
+<h2>各ストーリーの受け入れ条件</h2>
+<h3>US-01 の受け入れ条件</h3>
+<p><strong>US-01-S1: テンプレートから静的サイトを公開する</strong></p>
+<ul>
+<li>Given: 静的基盤のテンプレートと、静的サイトのソース一式を置いたGitリポジトリがある</li>
+<li>When: チーム開発者がテンプレートの手順に従いリポジトリへpushする</li>
+<li>Then: 自動デプロイが実行され、発行されたURLでトップページが表示される</li>
+</ul>
+<p><strong>US-01-S2: 不正な成果物のデプロイは失敗として報告される</strong></p>
+<ul>
+<li>Given: ビルドしても index.html が生成されないリポジトリがある</li>
+<li>When: チーム開発者がpushする</li>
+<li>Then: 自動デプロイが失敗として報告される</li>
+</ul>
+<h3>US-02 の受け入れ条件</h3>
+<p><strong>US-02-S1: テンプレートからPythonアプリを公開する</strong></p>
+<ul>
+<li>Given: 動的基盤のテンプレートと、ヘルスチェックAPIを持つPythonアプリのリポジトリがある</li>
+<li>When: チーム開発者がテンプレートの手順に従いpushする</li>
+<li>Then: 自動デプロイが実行され、発行されたURLでヘルスチェックAPIがHTTP 200を返す</li>
+</ul>
+<p><strong>US-02-S2: 起動に失敗したアプリのログを確認できる</strong></p>
+<ul>
+<li>Given: 起動時に例外で停止するPythonアプリのリポジトリがある</li>
+<li>When: チーム開発者がpushする</li>
+<li>Then: デプロイまたは起動の失敗が報告され、起動ログをAzure上で確認できる</li>
+</ul>
+<h3>US-03 の受け入れ条件</h3>
+<p><strong>US-03-S1: テンプレートからNext.jsアプリを公開する</strong></p>
+<ul>
+<li>Given: 動的基盤のテンプレートと、サーバー側レンダリングを使うNext.jsアプリのリポジトリがある</li>
+<li>When: チーム開発者がテンプレートの手順に従いpushする</li>
+<li>Then: 自動デプロイが実行され、発行されたURLでサーバー側レンダリングのページが表示される</li>
+</ul>
+<p><strong>US-03-S2: ビルドに失敗したデプロイは失敗として報告される</strong></p>
+<ul>
+<li>Given: ビルドエラーを含むNext.jsアプリのリポジトリがある</li>
+<li>When: チーム開発者がpushする</li>
+<li>Then: 自動デプロイが失敗として報告され、ビルドログを確認できる</li>
+</ul>
+<h3>US-04 の受け入れ条件</h3>
+<p><strong>US-04-S1: 変更をpushだけで反映する</strong></p>
+<ul>
+<li>Given: US-02のPythonアプリが公開済みで、応答内容を変更したコードがある</li>
+<li>When: チーム開発者が変更をpushする</li>
+<li>Then: 自動デプロイが実行され、公開URLで変更後の応答が返る</li>
+</ul>
+<p><strong>US-04-S2: 更新の失敗が公開中のアプリを壊さない</strong></p>
+<ul>
+<li>Given: US-02のPythonアプリが公開済みで、起動に失敗するコードがある</li>
+<li>When: チーム開発者が変更をpushする</li>
+<li>Then: 自動デプロイの失敗が報告され、公開URLは更新前の内容で応答し続ける</li>
+</ul>
+<h3>US-05 の受け入れ条件</h3>
+<p><strong>US-05-S1: アプリからPostgreSQLへ読み書きする</strong></p>
+<ul>
+<li>Given: 動的基盤にPostgreSQLが用意され、Pythonアプリに接続情報が設定されている</li>
+<li>When: アプリがデータを1件書き込み、読み出すAPIを呼ぶ</li>
+<li>Then: 書き込んだデータと同じ内容が読み出される</li>
+</ul>
+<p><strong>US-05-S2: 誤った接続情報のエラーを確認できる</strong></p>
+<ul>
+<li>Given: アプリのPostgreSQL接続情報が誤っている</li>
+<li>When: アプリが起動する</li>
+<li>Then: 接続エラーをログで確認できる</li>
+</ul>
+<h3>US-06 の受け入れ条件</h3>
+<p><strong>US-06-S1: 実測値で現行VM運用と比較する</strong></p>
+<ul>
+<li>Given: 2基盤で検証アプリが公開済みで、公開作業の所要時間を記録している</li>
+<li>When: 基盤管理者が新規公開1件の所要時間と基盤ごとの月額費用をまとめる</li>
+<li>Then: 現行VM運用との比較表が作成でき、企画書の(仮)数字を実測値で置き換えられる</li>
+</ul>
+<p><strong>US-06-S2: 予算超過ペースを月次で検知する</strong></p>
+<ul>
+<li>Given: 検証の予算枠が20万円(6か月)である</li>
+<li>When: 基盤管理者が月次でAzure利用料を確認する</li>
+<li>Then: 予算枠を超えるペースかどうかを判定し記録できる</li>
+</ul>
+<p><strong>US-06-S3: 検証終了後にリソースを撤去できる</strong></p>
+<ul>
+<li>Given: 検証が完了し、検証アプリと基盤リソースが不要になった</li>
+<li>When: 基盤管理者がテンプレートの撤去手順に従いリソースを削除する</li>
+<li>Then: 対象リソースが削除され、翌月以降のAzure利用料が発生しない</li>
+</ul>
+<h3>US-07 の受け入れ条件</h3>
+<p><strong>US-07-S1: M365アカウントでSSOログインする</strong></p>
+<ul>
+<li>Given: 動的基盤のアプリにSSOが設定され、利用者が組織のM365アカウントを持つ</li>
+<li>When: アプリ利用者が公開URLへアクセスしSSOでログインする</li>
+<li>Then: 認証が完了し、アプリの画面が表示される</li>
+</ul>
+<p><strong>US-07-S2: ログイン状態とトークンが基盤側で維持される</strong></p>
+<ul>
+<li>Given: アプリ利用者がSSOログイン済みである(セッションとGraph API用トークンは基盤の認証機能が保持する)</li>
+<li>When: 利用者が同じブラウザでアプリへ再アクセスする</li>
+<li>Then: 再認証なしでアプリの画面が表示される</li>
+</ul>
+<p><strong>US-07-S3: 未認証のアクセスを拒否する</strong></p>
+<ul>
+<li>Given: 利用者がログインしていない</li>
+<li>When: アプリの認証必須ページへアクセスする</li>
+<li>Then: ログイン画面へ誘導され、ページの内容は表示されない</li>
+</ul>
+<p><strong>US-07-S4: 静的サイトにもサイト単位でSSOをかけられる</strong></p>
+<ul>
+<li>Given: SSOを有効にした静的サイトと、無効にした静的サイトがある</li>
+<li>When: 未ログインの利用者がそれぞれへアクセスする</li>
+<li>Then: 有効なサイトはログインへ誘導され、無効なサイトはそのまま表示される</li>
+</ul>
+<h3>US-08 の受け入れ条件</h3>
+<p><strong>US-08-S1: カスタムドメインでアプリを表示する</strong></p>
+<ul>
+<li>Given: 社内DNSにカスタムドメインが登録され、基盤に割り当て済みである</li>
+<li>When: アプリ利用者がカスタムドメインのURLへアクセスする</li>
+<li>Then: 発行URLと同じアプリが表示される</li>
+</ul>
+<p><strong>US-08-S2: カスタムドメインでHTTPS接続できる</strong></p>
+<ul>
+<li>Given: カスタムドメインにSSL証明書が設定されている</li>
+<li>When: アプリ利用者がHTTPSでアクセスする</li>
+<li>Then: 証明書エラーなしで接続できる</li>
+</ul>
+<h3>US-09 の受け入れ条件</h3>
+<p><strong>US-09-S1: 稼働中の基盤に2本目のアプリを追加する</strong></p>
+<ul>
+<li>Given: 動的基盤で1本目のPythonアプリが公開済みである</li>
+<li>When: チーム開発者がテンプレートの手順に従い2本目のアプリを追加しpushする</li>
+<li>Then: 2本目が公開され、1本目は影響を受けずに応答し続ける</li>
+</ul>
+<p><strong>US-09-S2: アプリごとのデータベースを分離する</strong></p>
+<ul>
+<li>Given: 2本のアプリが同じPostgreSQLインスタンスを使い、アプリ別のデータベースを持つ</li>
+<li>When: 各アプリがデータを読み書きする</li>
+<li>Then: 各アプリは自分のデータベースだけにアクセスでき、他方のデータベースには接続できない</li>
+</ul>
+<p><strong>US-09-S3: アプリごとに認証セッションが独立する</strong></p>
+<ul>
+<li>Given: 2本のアプリが公開済みで、利用者がアプリ1にだけログインしている</li>
+<li>When: 利用者がアプリ2へアクセスする</li>
+<li>Then: アプリ1のセッションは流用されず、アプリ2は自身の認証を経てから表示される</li>
+</ul>
+<p><strong>US-09-S4: アプリごとの固有URLに振り分けられる</strong></p>
+<ul>
+<li>Given: 動的基盤で2本のアプリが公開済みで、それぞれ固有のURLを持つ</li>
+<li>When: アプリ利用者が各URLへアクセスする</li>
+<li>Then: URLに対応するアプリが応答し、他方のアプリの内容は返らない</li>
+</ul>
+<h3>US-10 の受け入れ条件</h3>
+<p><strong>US-10-S1: アプリからファイルを保存・取得する</strong></p>
+<ul>
+<li>Given: 動的基盤にBlob Storageが用意され、アプリにManaged Identityでのアクセス権が設定されている</li>
+<li>When: アプリがファイルを1件保存し、取得するAPIを呼ぶ</li>
+<li>Then: 保存したファイルと同じ内容が取得される</li>
+</ul>
+<p><strong>US-10-S2: アプリごとの保存領域が分離される</strong></p>
+<ul>
+<li>Given: 2本のアプリがそれぞれ専用の保存領域を持つ</li>
+<li>When: 各アプリがファイルを読み書きする</li>
+<li>Then: 各アプリは自分の保存領域だけにアクセスでき、他方の領域には届かない</li>
+</ul>
+<h3>US-11 の受け入れ条件</h3>
+<p><strong>US-11-S1: アプリから通知メールを送信する</strong></p>
+<ul>
+<li>Given: アプリにGraph APIのメール送信権限が構成されている</li>
+<li>When: アプリが通知メールの送信を実行する</li>
+<li>Then: 指定した宛先にメールが届く</li>
+</ul>
+<p><strong>US-11-S2: 送信できるメールボックスが限定されている</strong></p>
+<ul>
+<li>Given: Application Access Policyで送信可能なメールボックスが限定されている</li>
+<li>When: アプリが許可されていないメールボックスを差出人にして送信を試みる</li>
+<li>Then: 送信は拒否される</li>
+</ul>
+<h2>非機能要件</h2>
+<h3>同時利用者数</h3>
+<p>検証フェーズはチーム内利用(現状1名)に限り、同時アクセスは5名以内とする。本番展開時は利用者最大500名程度を想定する。本番の同時アクセス数は本番展開の判断時に確定する(確認事項)。</p>
+<h3>バックアップ</h3>
+<p>検証データのバックアップは行わない(確定)。検証アプリのコードと基盤テンプレートはGitで管理し、基盤はテンプレートからの再構築で復旧する(復旧目標: 1営業日(仮))。</p>
+<h3>権限</h3>
+<div class="tblwrap"><table>
+<thead><tr><th scope="col">役割</th><th scope="col">公開アプリの閲覧</th><th scope="col">デプロイ</th><th scope="col">基盤構成の変更</th><th scope="col">リソース削除</th></tr></thead>
+<tbody>
+<tr><td>アプリ利用者</td><td>○</td><td>×</td><td>×</td><td>×</td></tr>
+<tr><td>チーム開発者</td><td>○</td><td>○</td><td>×</td><td>×</td></tr>
+<tr><td>基盤管理者</td><td>○</td><td>○</td><td>○</td><td>○</td></tr>
+</tbody>
+</table></div>
+<h2>業務フロー</h2>
+<p>新規アプリ公開の流れ。</p>
+<figure class="diagram"><figcaption>業務フロー: 新規アプリ公開</figcaption>
+<svg viewBox="0 0 720 620" role="img" aria-label="新規アプリ公開の業務フロー" style="width:100%;height:auto">
+  <defs>
+    <marker id="reqflow-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/>
+    </marker>
+  </defs>
+  <g fill="none" stroke="#9ca3af" stroke-width="1.5">
+    <path d="M360,62 L360,80" marker-end="url(#reqflow-arw)"/>
+    <path d="M290,110 L160,110 L160,174" marker-end="url(#reqflow-arw)"/>
+    <path d="M430,110 L560,110 L560,174" marker-end="url(#reqflow-arw)"/>
+    <path d="M160,222 L160,289 L258,289" marker-end="url(#reqflow-arw)"/>
+    <path d="M560,222 L560,244 L360,244 L360,264" marker-end="url(#reqflow-arw)"/>
+    <path d="M360,312 L360,346" marker-end="url(#reqflow-arw)"/>
+    <path d="M290,376 L240,376 L240,450" marker-end="url(#reqflow-arw)"/>
+    <path d="M430,376 L560,376 L560,450" marker-end="url(#reqflow-arw)"/>
+    <path d="M240,498 L240,546" marker-end="url(#reqflow-arw)"/>
+    <path d="M560,452 L680,452 L680,289 L462,289" marker-end="url(#reqflow-arw)"/>
+  </g>
+  <g font-size="11" fill="#6b7280" text-anchor="middle" font-family="'Noto Sans JP',sans-serif">
+    <text x="220" y="102">静的</text>
+    <text x="500" y="102">動的</text>
+    <text x="258" y="400">Yes</text>
+    <text x="500" y="370">No</text>
+    <text x="588" y="220">修正→再push</text>
+  </g>
+  <g font-family="'Noto Sans JP',sans-serif" font-size="12" fill="#333" text-anchor="middle">
+    <rect x="260" y="16" width="200" height="46" rx="6" fill="#fff" stroke="#e5e7eb"/>
+    <text x="360" y="43">チーム開発者がアプリを完成させる</text>
+    <polygon points="360,82 430,110 360,138 290,110" fill="#fff" stroke="#e5e7eb"/>
+    <text x="360" y="114">コンテンツ種別</text>
+    <rect x="60" y="176" width="200" height="46" rx="6" fill="#fff" stroke="#e5e7eb"/>
+    <text x="160" y="203">静的基盤のテンプレートを複製する</text>
+    <rect x="460" y="176" width="200" height="46" rx="6" fill="#fff" stroke="#e5e7eb"/>
+    <text x="560" y="203">動的基盤のテンプレートを複製する</text>
+    <rect x="260" y="266" width="200" height="46" rx="6" fill="#fff" stroke="#e5e7eb"/>
+    <text x="360" y="293">設定を記入しリポジトリへpushする</text>
+    <polygon points="360,348 430,376 360,404 290,376" fill="#fff" stroke="#e5e7eb"/>
+    <text x="360" y="380">自動デプロイ成功?</text>
+    <rect x="140" y="452" width="200" height="46" rx="6" fill="#fff" stroke="#e5e7eb"/>
+    <text x="240" y="479">公開URLで動作を確認する</text>
+    <rect x="460" y="452" width="200" height="46" rx="6" fill="#fff" stroke="#e5e7eb"/>
+    <text x="560" y="479">ログを確認し修正する</text>
+    <rect x="140" y="548" width="200" height="46" rx="6" fill="#fff" stroke="#00a984"/>
+    <text x="240" y="575">所要時間と費用を記録する</text>
+  </g>
+</svg>
+<p class="zoom-hint">クリックで拡大</p></figure>
+<h2>将来検討(本検証のスコープ外)</h2>
+<ul>
+<li>ID/パスワード認証: M365アカウントを持たない利用者(派遣社員)向け。本番展開の検討時に扱う</li>
+</ul>
+<h2>利用部門への確認事項</h2>
+<p>起案チームで決める必要がある項目。回答が出るまで本書の該当箇所は(仮)のままとする。</p>
+<ol>
+<li>本番の同時アクセス数: 利用者最大500名程度のうち、ピーク時の同時アクセス数の想定</li>
+<li>メール送信の差出人: 現行ap-authは利用者本人として送るか、システム(共用メールボックス)として送るか(ADR-0002の方式A/Bの選定。US-11の検証内容に影響する)</li>
+</ol>
+    </div>
+    <nav class="page-nav">
+      <a class="page-nav-item" href="01_企画書.html"><span class="page-nav-dir">← 前</span><span class="page-nav-title">Azureアプリ公開基盤の構築</span><span class="page-nav-phase">01 要件定義</span></a>
+      <a class="page-nav-item page-nav-next" href="03_用語集.html"><span class="page-nav-dir">次 →</span><span class="page-nav-title">用語集</span><span class="page-nav-phase">01 要件定義</span></a>
+    </nav>
+    <div class="foot">Azureアプリ公開基盤(検証フェーズ) · 正本は Markdown(docs/) · <a href="../index.html">インデックス</a></div>
+  </main>
+</div>
+<dialog class="zoom-dlg" id="zoomDlg">
+  <div class="zoom-bar">
+    <span class="title">図解</span>
+    <button type="button" data-z="out" title="縮小">−</button>
+    <button type="button" data-z="in" title="拡大">＋</button>
+    <button type="button" data-z="reset" title="全体表示">リセット</button>
+    <button type="button" data-z="close" title="閉じる">閉じる ✕</button>
+  </div>
+  <div class="zoom-stage" id="zoomStage"></div>
+</dialog>
+<script src="../assets/nav.js" defer></script>
+<script src="../assets/enhance.js" defer></script>
+</body>
+</html>
