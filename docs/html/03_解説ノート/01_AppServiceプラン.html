@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>App Serviceプランの考え方 ｜ Azureアプリ公開基盤(検証フェーズ)</title>
+<meta name="description" content="App Serviceプランの課金単位と相乗りの仕組みを解説するノート。現行VMとの対応、共有と独立の境界、費用と密度の目安を整理する。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/base.css">
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidePanel">
+    <div class="side-header">
+      <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="true" aria-label="メニューを閉じる" title="メニューを閉じる"><span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <div class="side-header-text">
+        <div class="brand"><a href="../index.html">案件ドキュメント</a><small>azure-kiban / 検証フェーズ</small></div>
+        <div class="side-title"><a href="../index.html">Azureアプリ公開基盤(検証フェーズ)</a></div>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="ドキュメント一覧">
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#01_要件定義">01 要件定義</a></span>
+        <ol>
+          <li><a href="../01_要件定義/01_企画書.html"><span class="n">01</span>企画書</a></li>
+          <li><a href="../01_要件定義/02_要件定義.html"><span class="n">02</span>要件定義</a></li>
+          <li><a href="../01_要件定義/03_用語集.html"><span class="n">03</span>用語集</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#02_ADR">02 ADR(設計判断)</a></span>
+        <ol>
+          <li><a href="../02_ADR/0001_環境パターン選定.html"><span class="n">01</span>環境パターン選定</a></li>
+          <li><a href="../02_ADR/0002_認証方式.html"><span class="n">02</span>認証方式</a></li>
+          <li><a href="../02_ADR/0003_テンプレート形式.html"><span class="n">03</span>テンプレート形式</a></li>
+        </ol>
+      </div>
+      <div class="phase is-current">
+        <span class="phase-label"><a href="../index.html#03_解説ノート">03 解説ノート</a></span>
+        <ol>
+          <li><a class="active" href="../03_解説ノート/01_AppServiceプラン.html"><span class="n">01</span>App Serviceプラン</a></li>
+          <li><a href="../03_解説ノート/02_認可.html"><span class="n">02</span>認可の考え方</a></li>
+          <li><a href="../03_解説ノート/03_CICD.html"><span class="n">03</span>CI/CD</a></li>
+          <li><a href="../03_解説ノート/04_DNSとSSL.html"><span class="n">04</span>DNS・SSL</a></li>
+          <li><a href="../03_解説ノート/05_環境構成.html"><span class="n">05</span>環境構成</a></li>
+        </ol>
+      </div>
+    </nav>
+    <div class="side-meta">全 11 文書 + インデックス<br>正本: Markdown(docs/)</div>
+  </aside>
+  <main>
+    <div class="hero">
+      <div class="kicker">03 解説ノート · 01/05</div>
+      <h1>App Serviceプランの考え方</h1>
+      <p class="lede">課金単位であるApp Serviceプランの上にWeb Appを複数載せ、現行VM運用の「1台にコンテナを詰め込む」経済性を再現する仕組みを整理する。</p>
+    </div>
+    <div class="prose">
+      <h2>現行VMとの対応</h2>
+      <figure class="diagram"><figcaption>App Serviceプランと現行VMの対応</figcaption><img src="../assets/diagrams/note-appservice-plan.svg" alt="App Serviceプランと現行VMの対応"><p class="zoom-hint">クリックで拡大</p></figure>
+      <div class="tblwrap"><table><thead><tr><th scope="col">現行(VM運用)</th><th scope="col">App Service</th></tr></thead><tbody>
+        <tr><td>Azure VM 1台</td><td>App Serviceプラン 1つ(課金単位。B1 約2,000円/月)</td></tr>
+        <tr><td>Dockerコンテナ ×n</td><td>Web App ×n(追加無料)</td></tr>
+        <tr><td>コンテナごとの設定</td><td>Web Appごとの独立したURL・設定・Easy Auth・Entra登録・デプロイ</td></tr>
+      </tbody></table></div>
+      <h2>共有されるものと独立しているもの</h2>
+      <ul>
+        <li><strong>共有(プラン単位)</strong>: CPU・メモリ。スケールアップ(B1→B2)はプラン単位で、1つのアプリの高負荷は同居アプリに影響する。VM内のコンテナと同じ性質</li>
+        <li><strong>独立(Web App単位)</strong>: URL・設定・Easy Auth・Entra IDアプリ登録・デプロイ。資源は相乗りで安く、認証と権限はアプリごとに分けられる。「1業務アプリ=1 Web App=1アプリ登録」の1:1を保てる根拠(認可の使い分けは notes/authorization.md)</li>
+      </ul>
+      <h2>費用と密度</h2>
+      <ul>
+        <li>アプリを追加して増える費用は<strong>Private Endpoint(約1,100円/月)だけ</strong>。プラン・Web Appの追加費用はゼロ</li>
+        <li>密度の目安はB1で数個〜8個。検証アプリ3本+静的サイト1本は余裕</li>
+        <li>詰め込みすぎて遅くなったら、アプリを別プランへ移すかプランをスケールアップする。この判断も現行VMの増強判断と同じ感覚でできる</li>
+      </ul>
+    </div>
+    <nav class="page-nav">
+      <a class="page-nav-item" href="../02_ADR/0003_テンプレート形式.html"><span class="page-nav-dir">← 前</span><span class="page-nav-title">テンプレートの記述形式(Bicep採用)</span><span class="page-nav-phase">02 ADR(設計判断)</span></a>
+      <a class="page-nav-item page-nav-next" href="02_認可.html"><span class="page-nav-dir">次 →</span><span class="page-nav-title">認可の考え方</span><span class="page-nav-phase">03 解説ノート</span></a>
+    </nav>
+    <div class="foot">Azureアプリ公開基盤(検証フェーズ) · 正本は Markdown(docs/) · <a href="../index.html">インデックス</a></div>
+  </main>
+</div>
+<dialog class="zoom-dlg" id="zoomDlg">
+  <div class="zoom-bar">
+    <span class="title">図解</span>
+    <button type="button" data-z="out" title="縮小">−</button>
+    <button type="button" data-z="in" title="拡大">＋</button>
+    <button type="button" data-z="reset" title="全体表示">リセット</button>
+    <button type="button" data-z="close" title="閉じる">閉じる ✕</button>
+  </div>
+  <div class="zoom-stage" id="zoomStage"></div>
+</dialog>
+<script src="../assets/nav.js" defer></script>
+<script src="../assets/enhance.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>アプリ公開基盤の環境パターン選定 ｜ Azureアプリ公開基盤(検証フェーズ)</title>
+<meta name="description" content="静的・動的基盤の実現方式をP0〜P6の構成パターンで比較し、P1(App Service集約)の採用を決定したADR。決定済み。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/base.css">
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidePanel">
+    <div class="side-header">
+      <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="true" aria-label="メニューを閉じる" title="メニューを閉じる"><span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <div class="side-header-text">
+        <div class="brand"><a href="../index.html">案件ドキュメント</a><small>azure-kiban / 検証フェーズ</small></div>
+        <div class="side-title"><a href="../index.html">Azureアプリ公開基盤(検証フェーズ)</a></div>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="ドキュメント一覧">
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#01_要件定義">01 要件定義</a></span>
+        <ol>
+          <li><a href="../01_要件定義/01_企画書.html"><span class="n">01</span>企画書</a></li>
+          <li><a href="../01_要件定義/02_要件定義.html"><span class="n">02</span>要件定義</a></li>
+          <li><a href="../01_要件定義/03_用語集.html"><span class="n">03</span>用語集</a></li>
+        </ol>
+      </div>
+      <div class="phase is-current">
+        <span class="phase-label"><a href="../index.html#02_ADR">02 ADR(設計判断)</a></span>
+        <ol>
+          <li><a class="active" href="../02_ADR/0001_環境パターン選定.html"><span class="n">01</span>環境パターン選定</a></li>
+          <li><a href="../02_ADR/0002_認証方式.html"><span class="n">02</span>認証方式</a></li>
+          <li><a href="../02_ADR/0003_テンプレート形式.html"><span class="n">03</span>テンプレート形式</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#03_解説ノート">03 解説ノート</a></span>
+        <ol>
+          <li><a href="../03_解説ノート/01_AppServiceプラン.html"><span class="n">01</span>App Serviceプラン</a></li>
+          <li><a href="../03_解説ノート/02_認可.html"><span class="n">02</span>認可の考え方</a></li>
+          <li><a href="../03_解説ノート/03_CICD.html"><span class="n">03</span>CI/CD</a></li>
+          <li><a href="../03_解説ノート/04_DNSとSSL.html"><span class="n">04</span>DNS・SSL</a></li>
+          <li><a href="../03_解説ノート/05_環境構成.html"><span class="n">05</span>環境構成</a></li>
+        </ol>
+      </div>
+    </nav>
+    <div class="side-meta">全 11 文書 + インデックス<br>正本: Markdown(docs/)</div>
+  </aside>
+  <main>
+    <div class="hero">
+      <div class="kicker">02 ADR(設計判断) · 01/03</div>
+      <h1>アプリ公開基盤の環境パターン選定</h1>
+      <p class="lede">社内閉域網・全リソースプライベートの前提で静的基盤・動的基盤・共通部の実現方式を比較し、P1(App Service集約)を採用する。</p>
+    </div>
+    <div class="prose">
+<p>状態: 決定済み(P1: App Service集約を採用)
+日付: 2026-07-05
+関連: docs/project/02_requirements.md(前提条件P-1〜P-6、検証マイルストーン)</p>
+
+<h2>背景</h2>
+<p>要件定義の前提は、社内閉域網内・全リソースプライベート・社内VNet接続・App Service証明書・GitHub.comからのpush起点デプロイ(標準)・予算20万円/6か月(ランニング月2万円級)・実装者1名である。第1段のゴールは「テンプレートから環境一式を短時間で用意できる」こと。この前提で静的基盤・動的基盤・共通部の実現方式を選ぶ。</p>
+
+<h2>選択肢</h2>
+
+<h3>現行構成との対応(現行の各要素が何に置き換わるか)</h3>
+<div class="tblwrap"><table><thead><tr><th scope="col">現行要素</th><th scope="col">現行での役割</th><th scope="col">Azureでの対応先(候補)</th><th scope="col">補足</th></tr></thead><tbody>
+<tr><td>nginx</td><td>TLS終端・ホスト名によるアプリ振り分け・静的配信</td><td>基盤側が吸収する。App Service・Static Web Appsではプラットフォームのフロントが同じ役割を担い、nginx自体は不要になる</td><td>nginxコンテナを持ち込むのはP5のみ。複数サイトの入口を1つに束ねたい場合だけApplication Gatewayを追加する(P4)</td></tr>
+<tr><td>ap-xxxx(アプリ実行)</td><td>Dockerコンテナでアプリを稼働</td><td>D1: App Service(1アプリ=1 App、1プランに相乗り)/ D2: Container Apps(1アプリ=1コンテナアプリ、環境を共有)</td><td>US-09の相乗りに対応</td></tr>
+<tr><td>PostgreSQL</td><td>1インスタンスをDB分割で全アプリが共用</td><td>DB1: Azure Database for PostgreSQL Flexible Server(プライベート接続)</td><td>現行と同一製品。アプリ別DB分割(US-09-S2)も同じ方式</td></tr>
+<tr><td>Redis</td><td>セッション管理・SSO後のトークン格納</td><td>基盤の認証機能へ委譲(Easy Auth・Managed Identity)。アプリ独自キャッシュが必要な場合のみAzure Cache for Redis</td><td>Redisそのものは原則不要になる。US-07-S2で代替を確認</td></tr>
+<tr><td>ファイル保存(BLOB相当)</td><td>VMディスク・コンテナボリュームへの保存</td><td>Azure Blob Storage(Storageアカウント+Private Endpoint)</td><td>US-10で検証する(アプリごとに保存領域を分離)</td></tr>
+<tr><td>ap-auth(認証)</td><td>M365 Graph APIでSSO、OAuthのメール送信</td><td>Microsoft Entra ID+App Service組み込み認証(Easy Auth)、またはアプリ内でMSAL。メール送信はGraph APIを継続利用</td><td>US-07で検証。共通認証コンポーネントを自作せず基盤機能に委譲できるかが論点</td></tr>
+</tbody></table></div>
+
+<h3>構成要素ごとの選択肢</h3>
+
+<p><strong>静的基盤(配信)</strong></p>
+<div class="tblwrap"><table><thead><tr><th scope="col">#</th><th scope="col">方式</th><th scope="col">閉域対応</th><th scope="col">月額目安(概算)</th><th scope="col">補足</th></tr></thead><tbody>
+<tr><td>S1</td><td>Static Web Apps(Standard)</td><td>Private Endpoint対応</td><td>約1,400円/アプリ</td><td>GitHub連携内蔵。証明書は独自機構でP-5と齟齬</td></tr>
+<tr><td>S2</td><td>Storageアカウント静的サイト</td><td>Private Endpoint対応</td><td>数百円</td><td>閉域でのカスタムドメインTLSに別途入口(AppGW等)が必要</td></tr>
+<tr><td>S3</td><td>App Serviceに静的サイトを配置</td><td>Private Endpoint対応</td><td>プラン相乗りで追加費用ほぼゼロ</td><td>動的と同一の仕組み。P-5とそのまま整合</td></tr>
+<tr><td>S4</td><td>Container Appsでnginxコンテナ配信</td><td>内部イングレス対応</td><td>低額(従量)</td><td>コンテナ管理が増える</td></tr>
+</tbody></table></div>
+
+<p><strong>動的基盤(実行)</strong></p>
+<div class="tblwrap"><table><thead><tr><th scope="col">#</th><th scope="col">方式</th><th scope="col">閉域対応</th><th scope="col">月額目安(概算)</th><th scope="col">補足</th></tr></thead><tbody>
+<tr><td>D1</td><td>App Service(Linux、1プランに複数アプリ相乗り)</td><td>VNet統合+Private Endpoint</td><td>B1で約2,000円/プラン</td><td>US-09の相乗りがプラン共有で自然。P-5と整合</td></tr>
+<tr><td>D2</td><td>Container Apps(内部環境)</td><td>VNet内部環境</td><td>従量(アイドルほぼゼロ)</td><td>ゼロスケールで安い。証明書・ドメインは独自機構</td></tr>
+<tr><td>D3</td><td>AKS(プライベートクラスタ)</td><td>対応</td><td>ノード代1万円超/月</td><td>1人検証には運用過剰</td></tr>
+<tr><td>D4</td><td>Azure Functions</td><td>対応(Premium以上で高額)</td><td>-</td><td>Next.js SSRに不向き</td></tr>
+</tbody></table></div>
+
+<p><strong>データ(共有基盤)</strong></p>
+<div class="tblwrap"><table><thead><tr><th scope="col">#</th><th scope="col">方式</th><th scope="col">補足</th></tr></thead><tbody>
+<tr><td>DB1</td><td>Azure Database for PostgreSQL Flexible Server(プライベート接続、B1ms)</td><td>約3,000〜4,500円/月。1インスタンスにアプリ別DBを切る(US-09-S2)。現行と同一製品</td></tr>
+<tr><td>DB2</td><td>PostgreSQLコンテナを自前運用</td><td>脆弱性対応の委譲という目的に反するため原則除外</td></tr>
+<tr><td>R1</td><td>Azure Cache for Redis(Basic C0)</td><td>約2,500円/月。基盤の認証機能(Easy Auth・Managed Identity)がセッション・トークンを代行するため原則不要。アプリ独自キャッシュが必要になった場合のみ追加</td></tr>
+<tr><td>R2</td><td>Redisコンテナを自前運用</td><td>DB2と同じ理由で原則除外</td></tr>
+</tbody></table></div>
+
+<p><strong>CI/CD(GitHub.com → 閉域内へのデプロイ)</strong></p>
+<div class="tblwrap"><table><thead><tr><th scope="col">#</th><th scope="col">方式</th><th scope="col">補足</th></tr></thead><tbody>
+<tr><td>C1</td><td>GitHub Actions + セルフホストランナー(Container Apps Jobs)</td><td>ランナーを閉域内でジョブ実行時だけ起動。アイドル費用ほぼゼロ。有力</td></tr>
+<tr><td>C2</td><td>GitHub Actions + セルフホストランナー(常駐VM)</td><td>単純だがVM保守が復活し本末転倒気味</td></tr>
+<tr><td>C3</td><td>GitHubホストランナー + デプロイ先の一時パブリック開放(IP制限)</td><td>前提P-1(パブリック公開しない)に抵触。除外</td></tr>
+<tr><td>C4</td><td>手動デプロイ(az cli / zip)</td><td>P-3(手動デプロイは行わない)に抵触。第1段の緊急時の逃げ道としてのみ記録</td></tr>
+</tbody></table></div>
+
+<h3>組み合わせパターン</h3>
+<div class="tblwrap"><table><thead><tr><th scope="col">パターン</th><th scope="col">静的</th><th scope="col">動的</th><th scope="col">CI/CD</th><th scope="col">月額合計目安(概算)</th><th scope="col">特徴</th></tr></thead><tbody>
+<tr><td>P0: 現行VM(基準線)</td><td>VM+nginx</td><td>VM+Docker</td><td>手動</td><td>現行実績値</td><td>比較のベースライン。US-06で数字を確定する</td></tr>
+<tr><td>P1: App Service集約</td><td>S3</td><td>D1</td><td>C1</td><td>1〜1.5万円</td><td>1系統で完結。P-5と完全整合。テンプレート最少</td></tr>
+<tr><td>P2: SWA+App Service</td><td>S1</td><td>D1</td><td>C1(SWAはGitHub連携)</td><td>1.2〜1.7万円</td><td>静的の体験が良い。証明書・ネットワークが2系統</td></tr>
+<tr><td>P3: SWA+Container Apps</td><td>S1</td><td>D2</td><td>C1</td><td>1〜1.5万円(従量)</td><td>目指す体験に最接近。作り込み最多。P-5と齟齬</td></tr>
+<tr><td>P4: Storage静的+App Service</td><td>S2</td><td>D1</td><td>C1</td><td>AppGW追加で2万円超</td><td>静的最安のはずが入口装置で逆転する恐れ</td></tr>
+<tr><td>P5: 全Container Apps</td><td>S4</td><td>D2</td><td>C1</td><td>1万円前後(従量)</td><td>構成は一貫するが証明書・ドメインを自作する量が多い</td></tr>
+<tr><td>P6: AKS集約</td><td>-</td><td>D3</td><td>-</td><td>2万円超</td><td>本番大規模向け。検証では過剰として参考記載</td></tr>
+</tbody></table></div>
+<p>共通事項: いずれのパターンもPostgreSQLはDB1、Private DNSゾーンとPrivate Endpoint(1個約1,100円/月)が付随する。Redis(R1)は基盤の認証機能が代行するため既定では作らない。月額は要精査であり、決定時に見積もりを確定させる。</p>
+
+<h3>共通で必要になるリソース(全パターン)</h3>
+<div class="tblwrap"><table><thead><tr><th scope="col">リソース</th><th scope="col">数</th><th scope="col">役割</th><th scope="col">月額目安(概算)</th></tr></thead><tbody>
+<tr><td>リソースグループ</td><td>1</td><td>検証リソースの入れ物。撤去(US-06-S3)はグループ削除で行う</td><td>0円</td></tr>
+<tr><td>社内VNet(既存)のサブネット</td><td>2〜3面</td><td>PE用/VNet統合・ランナー用(P4はAppGW用を追加)</td><td>0円</td></tr>
+<tr><td>Private DNSゾーン</td><td>2〜4</td><td>privatelink.postgres〜・redis〜・azurewebsites〜等の名前解決</td><td>約50円/ゾーン</td></tr>
+<tr><td>PostgreSQL Flexible Server(B1ms)</td><td>1</td><td>共有DB。委任サブネット接続ならPE不要</td><td>約3,000〜4,500円</td></tr>
+<tr><td>(任意)Azure Cache for Redis+PE</td><td>0〜1</td><td>アプリ独自キャッシュが必要な場合のみ。認証セッション・トークンは基盤が保持するため既定では作らない</td><td>約2,500円+PE約1,100円(作る場合)</td></tr>
+<tr><td>Blob Storage+PE</td><td>1</td><td>ファイル保存(US-10)。アプリごとに保存領域を分離</td><td>数百円+PE約1,100円</td></tr>
+<tr><td>Container Apps環境+Jobs</td><td>1</td><td>GitHub Actionsセルフホストランナー(都度起動)</td><td>ほぼ従量(アイドル約0円)</td></tr>
+<tr><td>Entra IDアプリ登録</td><td>アプリ数分</td><td>SSO(US-07)</td><td>0円</td></tr>
+<tr><td>App Service証明書</td><td>1</td><td>カスタムドメインのTLS(前提P-5)</td><td>年額約1万円</td></tr>
+</tbody></table></div>
+
+<h3>パターン別の必要リソースと得失</h3>
+
+<p><strong>P1: App Service集約</strong></p>
+<div class="tblwrap"><table><thead><tr><th scope="col">追加リソース</th><th scope="col">数</th><th scope="col">役割</th><th scope="col">月額目安(概算)</th></tr></thead><tbody>
+<tr><td>App Serviceプラン(Linux B1)</td><td>1</td><td>全アプリ+静的サイトの実行</td><td>約2,000円</td></tr>
+<tr><td>Web App</td><td>アプリ数+静的1</td><td>1アプリ=1 App。プランに相乗り</td><td>プラン内0円</td></tr>
+<tr><td>Private Endpoint</td><td>Web Appごとに1</td><td>受信の私設入口</td><td>約1,100円×個数</td></tr>
+</tbody></table></div>
+<ul>
+<li>優位性: 証明書(P-5)・DNS・デプロイ手順が1系統でテンプレートが最小。相乗り(US-09)がプラン共有で自然。費用が固定で予算管理しやすい</li>
+<li>デメリット: PEがWeb Appごとに必要で、アプリ数に比例する費用(約1,100円/月×n)が残る。常時起動の固定費でゼロスケールなし。静的サイトに実行環境は過剰</li>
+</ul>
+
+<p><strong>P2: Static Web Apps + App Service</strong></p>
+<div class="tblwrap"><table><thead><tr><th scope="col">追加リソース</th><th scope="col">数</th><th scope="col">役割</th><th scope="col">月額目安(概算)</th></tr></thead><tbody>
+<tr><td>Static Web Apps(Standard)</td><td>静的サイト数</td><td>静的配信</td><td>約1,400円×数</td></tr>
+<tr><td>Private Endpoint(SWA用)</td><td>静的サイト数</td><td>受信の私設入口</td><td>約1,100円×数</td></tr>
+<tr><td>App Service一式(P1と同じ)</td><td>-</td><td>動的アプリの実行</td><td>P1参照</td></tr>
+</tbody></table></div>
+<ul>
+<li>優位性: 静的をアプリ実行環境から分離でき、静的サイト機能(ステージング等)が使える</li>
+<li>デメリット: 証明書・DNS・PE・手順書が2系統。SWAの証明書は独自機構でP-5と齟齬。P1より費用増</li>
+</ul>
+
+<p><strong>P3: Static Web Apps + Container Apps</strong></p>
+<div class="tblwrap"><table><thead><tr><th scope="col">追加リソース</th><th scope="col">数</th><th scope="col">役割</th><th scope="col">月額目安(概算)</th></tr></thead><tbody>
+<tr><td>SWA一式(P2と同じ)</td><td>-</td><td>静的配信</td><td>P2参照</td></tr>
+<tr><td>Container Apps環境(内部)</td><td>1</td><td>アプリ実行。ランナーの環境と共用できる</td><td>従量</td></tr>
+<tr><td>Container App</td><td>アプリ数</td><td>1アプリ=1コンテナアプリ。ゼロスケール</td><td>従量(アイドル約0円)</td></tr>
+<tr><td>Container Registry(Basic)</td><td>1</td><td>アプリのコンテナイメージ置き場</td><td>約700円</td></tr>
+</tbody></table></div>
+<ul>
+<li>優位性: アプリ追加の限界費用がほぼゼロ(PE不要・従量)。夜間ゼロスケールで検証費用が最小。現行のDocker資産と親和。ランナーと環境を共用できる</li>
+<li>デメリット: 証明書がACA/SWAの独自機構でP-5と齟齬。ビルド→レジストリ→デプロイの作り込みが最多。従量で費用が読みにくい。内部イングレスのIPを社内DNSへ登録する運用が要る</li>
+</ul>
+
+<p><strong>P4: Application Gateway集約</strong></p>
+<div class="tblwrap"><table><thead><tr><th scope="col">追加リソース</th><th scope="col">数</th><th scope="col">役割</th><th scope="col">月額目安(概算)</th></tr></thead><tbody>
+<tr><td>Application Gateway(Standard_v2・内部)</td><td>1</td><td>TLS終端・ホスト/パス振り分け(現行nginx相当)</td><td>約2.5万円〜</td></tr>
+<tr><td>Storageアカウント静的サイト+PE</td><td>1</td><td>静的配信</td><td>数百円+約1,100円</td></tr>
+<tr><td>App Service一式(P1と同じ)</td><td>-</td><td>動的アプリの実行</td><td>P1参照</td></tr>
+</tbody></table></div>
+<ul>
+<li>優位性: 入口とTLS(証明書1枚)を一元化。パス分割のURL設計が自然。現行nginxと同型で概念の切り替えが少ない</li>
+<li>デメリット: AppGW単体で予算(月2万円)を超える固定費。構成要素が最多。検証フェーズには過剰。静的サイトへのSSO(US-07-S4)はStorage単体では実現できず作り込みが必要</li>
+</ul>
+
+<p>P5(全Container Apps)はP3の静的をnginxコンテナ配信に置き換えた形で、追加リソースはP3とほぼ同じ。静的のためにコンテナを保守する分だけP3より手間が増えるため、P3が成立するならP5を選ぶ理由は薄い。</p>
+
+<h3>主要パターンのアーキテクチャ図(リクエスト→レスポンスの流れ)</h3>
+<p>現実的に採り得るP1〜P4を、利用者のリクエストの流れ(①名前解決 → ②HTTPSリクエスト → ③SSO認証 → ④データアクセス → ⑤レスポンス)とデプロイの流れ(push → ランナーの外向きpoll → デプロイ)で図にした。ベストプラクティスとして全パターン共通で次を採る。</p>
+<ul>
+<li>受信はPrivate Endpoint+社内DNS。P3の動的のみ内部イングレス、P4はApplication Gatewayで入口を一元化</li>
+<li>PostgreSQL・Blob(・任意で追加するRedis)への接続はVNet内のプライベート接続に閉じる</li>
+<li>認証はMicrosoft Entra IDへ委譲する(App Service組み込み認証)。ブラウザとEntra IDの間の通信だけがM365側に出る</li>
+<li>デプロイはVNet内のランナーがGitHub.comへ外向きにpollする。GitHubからのインバウンド開放はしない</li>
+</ul>
+
+<p><strong>P1: App Service集約型</strong> — 1系統で完結。TLSはApp Service証明書、静的サイトもAppとして同居</p>
+<figure class="diagram"><figcaption>P1: App Service集約型</figcaption><img src="../assets/diagrams/0001-pattern-p1.svg" alt="P1: App Service集約型"><p class="zoom-hint">クリックで拡大</p></figure>
+
+<p><strong>P2: Static Web Apps + App Service</strong> — 静的と動的を分離。入口(PE)と証明書が2系統になる</p>
+<figure class="diagram"><figcaption>P2: Static Web Apps + App Service</figcaption><img src="../assets/diagrams/0001-pattern-p2.svg" alt="P2: Static Web Apps + App Service"><p class="zoom-hint">クリックで拡大</p></figure>
+
+<p><strong>P3: Static Web Apps + Container Apps</strong> — 動的は内部イングレス。ゼロスケールで安いが証明書は独自機構</p>
+<figure class="diagram"><figcaption>P3: Static Web Apps + Container Apps</figcaption><img src="../assets/diagrams/0001-pattern-p3.svg" alt="P3: Static Web Apps + Container Apps"><p class="zoom-hint">クリックで拡大</p></figure>
+
+<p><strong>P4: Application Gateway集約型</strong> — 現行nginxに最も近い形。TLS終端と振り分けを一元化する代わりに装置の固定費が乗る</p>
+<figure class="diagram"><figcaption>P4: Application Gateway集約型</figcaption><img src="../assets/diagrams/0001-pattern-p4.svg" alt="P4: Application Gateway集約型"><p class="zoom-hint">クリックで拡大</p></figure>
+
+<p>注意: いずれのパターンも、VNetからGitHub.comへの外向きHTTPS(ランナーのpoll)と、利用者ブラウザからEntra IDへの到達が前提になる。VNetからGitHub.comへの外向きアクセスは可能と確認済み(前提P-8)。インバウンドの開放はしない。</p>
+
+<h3>名前解決の仕組み(Private EndpointとDNS)</h3>
+<p><strong>補足: Private Endpoint(PE)とは。</strong> AzureのPaaSサービス(App Service・DB・Storage)は、本来インターネット上の公開アドレスを持つ。PEを作ると、そのサービス専用の「社内向けの差し込み口」が社内VNetの中に私設IPで1つ生える。以後は社内からその私設IP経由でサービスに届き、公開側の入口は塞げる。現行構成でいえば「サーバーを社内LANにだけ接続する」ことのPaaS版で、これが前提P-1(パブリック公開しない)を実現する部品になる。1個あたり月額約1,100円(概算)。</p>
+<p>Private Endpointを作ると、対象サービスのFQDN(例: app1.azurewebsites.net)は privatelink.azurewebsites.net への別名に変わる。これを私設IPへ解決するのはAzureの「Private DNSゾーン」で、VNetにリンクして使う。解決が自動で効く範囲は次のとおり分かれる。</p>
+<ul>
+<li>VNetの中(ランナー・アプリ間通信): Azureの既定リゾルバがPrivate DNSゾーンを参照し、自動で私設IPに解決される</li>
+<li>社内ネットワークの利用者: 社内DNSが解決を担うため、AzureのPrivate DNSゾーンには直接届かない。次のどちらかを選ぶ
+<ol>
+<li>社内DNSに静的レコードを登録する: カスタムドメイン(例: app1.corp.example.com)→PEの私設IPのAレコードを手動登録する。アプリ追加時の登録作業はテンプレートの手順に含める。第1段はこれを推奨(追加費用なし)</li>
+<li>Azure DNS Private Resolverを置く: 社内DNSから条件付きフォワードでAzure側へ問い合わせる。登録が自動化できる代わりにエンドポイントの固定費が乗る(要精査)。本番展開でアプリ数が増えた時に再検討する</li>
+</ol>
+</li>
+</ul>
+<p>アーキテクチャ図の「① 名前解決」はこの仕組みを指す。</p>
+
+<h3>認証はどこで行われるか(ap-authの置き換え)</h3>
+<p>認証方式は 0002-auth-easyauth.md で「Easy Auth+Microsoft Entra ID(自作しない)」に決定済み。仕組みの詳細はそちらを参照。</p>
+<p>Private Endpointは認証をしない。PEが守るのは「どの経路から届くか」だけで、届いた後の「誰か」の確認は別の層で行う。</p>
+<ul>
+<li>全パターン共通で、認証は実行基盤の組み込み認証+Microsoft Entra IDで行う。未認証のリクエストは、アプリのコードに渡る前に基盤がEntra IDのログインへ誘導する(図の③)。現行ap-authのような独立した認証コンポーネントは立てず、基盤機能へ委譲する。リソース一覧に認証サーバーがないのはこのため(必要なのは無料のEntra IDアプリ登録のみ)</li>
+<li>認証後のセッションはEasy AuthのCookieが、Graph API用トークンはEasy Authのトークンストア(利用者として送る場合)またはManaged Identity(システムとして送る場合)が扱う。現行Redisのセッション・トークン管理は不要になる(US-07-S2で確認)。メール送信はアプリからGraph APIを呼ぶ</li>
+<li>組み込み認証の機構はApp Service(Easy Auth)・Static Web Apps・Container Appsでそれぞれ別物になる。P2・P3のように基盤が2系統になると認証設定も2系統になり、証明書と同じく「系統数」の論点に含まれる</li>
+<li>静的サイトにもサイト単位でSSOをかける(US-07-S4)。実現手段はパターンで差が出る: P1は動的と同一機構(Easy Auth)でそのまま適用できる。P2・P3のSWAは組み込み認証を持つが動的側とは別機構になる。P4のStorage静的サイトは単体で認証できず、Application GatewayにもSSO機能がないため作り込みが必要になる</li>
+</ul>
+
+<h3>絞り込みの観点(決定時に使う)</h3>
+<ol>
+<li>前提P-5(App Service証明書)との整合 — P1・P2・P4は整合、P3・P5は証明書機構が別</li>
+<li>第1段ゴール(テンプレートで環境がすぐできる)への近さ — 系統数が少ないほど有利</li>
+<li>予算(月2万円級)内での費用の予見性 — 固定費のApp Service系は読みやすく、従量のACA系は安いが読みにくい</li>
+<li>US-09(複数アプリ相乗り)の自然さ — App Serviceプラン共有、ACAは環境共有で対応</li>
+<li>現行構成(nginx+PG+Redis+n個アプリ)からの概念の近さ — 移行判断のしやすさ</li>
+<li>静的サイトへのSSO(US-07-S4)の実現しやすさ — P1は動的と同一機構、P2・P3は別機構(SWA組み込み認証)、P4は作り込みが必要</li>
+</ol>
+
+<h2>決定</h2>
+<p><strong>P1(App Service集約)を採用する。</strong> 静的サイトも動的アプリも1つの構成系統(App Service+Easy Auth+App Service証明書)に載せる。あわせて次を確定する。</p>
+<ul>
+<li>検証・本番は環境別のApp Serviceプランに分ける(notes/environments.md)</li>
+<li>URLはアプリ別サブドメイン方式とし、ワイルドカード証明書1枚で賄う(notes/dns-ssl.md。前提P-9)</li>
+<li>CI/CDはC1(Container Apps Jobsのセルフホストランナー。notes/cicd.md)</li>
+<li>テンプレートの記述形式はBicep(0003-select-template-format.md)</li>
+</ul>
+
+<h2>理由</h2>
+<ul>
+<li>前提との整合が最も高い。App Service証明書(P-5)とEasy Auth(P-7)が追加の作り込みなしで成立するのはP1だけ</li>
+<li>第1段のゴール「テンプレートから環境がすぐできる」に対し、構成が1系統でテンプレートが最小になる</li>
+<li>相乗り(US-09)がプラン共有で自然に実現し、費用が固定で予算(月2万円級)に収まる</li>
+<li>静的サイトへのSSO(US-07-S4)を動的と同一機構で実現できる</li>
+<li>現行VM運用(1台にコンテナn個)と概念が同型で、本番移行の判断がしやすい</li>
+</ul>
+
+<h2>捨てた案とその理由</h2>
+<ul>
+<li><strong>P2(SWA+App Service)</strong>: 証明書・DNS・認証設定が2系統になり、検証コストの増分に見合う利点が静的配信の軽さしかない</li>
+<li><strong>P3(SWA+Container Apps)</strong>: ゼロスケールの費用効率は魅力だが、証明書(P-5)・Easy Auth(P-7)と齟齬。再評価の条件は4つ — 利用が散発的でゼロスケールの節約が効く規模になった/HTTP以外の常駐ワークロードが増えた/アプリ単位の独立スケールが必要になった/コンテナイメージ運用を続けたい。いずれかが顕在化したら見直す(notes/cicd.md)。なおACA自体はランナー(C1)として採用しており、全面不採用ではない</li>
+<li><strong>P4(AppGW集約)</strong>: 装置単体で予算を超える固定費に加え、静的サイトのSSOに作り込みが必要</li>
+<li><strong>P5(全Container Apps)</strong>: P3を採らない以上、選ぶ理由がない</li>
+<li><strong>P6(AKS)・C3(一時パブリック開放)・C4(手動デプロイ)・DB2/R2(自前コンテナ運用)</strong>: 選択肢の節に記載のとおり除外を確定する</li>
+</ul>
+    </div>
+    <nav class="page-nav">
+      <a class="page-nav-item" href="../01_要件定義/03_用語集.html"><span class="page-nav-dir">← 前</span><span class="page-nav-title">用語集</span><span class="page-nav-phase">01 要件定義</span></a>
+      <a class="page-nav-item page-nav-next" href="0002_認証方式.html"><span class="page-nav-dir">次 →</span><span class="page-nav-title">認証方式の選定(Easy Auth + Microsoft Entra ID)</span><span class="page-nav-phase">02 ADR(設計判断)</span></a>
+    </nav>
+    <div class="foot">Azureアプリ公開基盤(検証フェーズ) · 正本は Markdown(docs/) · <a href="../index.html">インデックス</a></div>
+  </main>
+</div>
+<dialog class="zoom-dlg" id="zoomDlg">
+  <div class="zoom-bar">
+    <span class="title">図解</span>
+    <button type="button" data-z="out" title="縮小">−</button>
+    <button type="button" data-z="in" title="拡大">＋</button>
+    <button type="button" data-z="reset" title="全体表示">リセット</button>
+    <button type="button" data-z="close" title="閉じる">閉じる ✕</button>
+  </div>
+  <div class="zoom-stage" id="zoomStage"></div>
+</dialog>
+<script src="../assets/nav.js" defer></script>
+<script src="../assets/enhance.js" defer></script>
+</body>
+</html>

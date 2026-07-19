@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DNSとSSL証明書の考え方 ｜ Azureアプリ公開基盤(検証フェーズ)</title>
+<meta name="description" content="アプリ追加時のDNSと証明書の増分を整理する解説ノート。ワイルドカード証明書の損益分岐、URL設計、自動更新の判断を示す。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/base.css">
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidePanel">
+    <div class="side-header">
+      <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="true" aria-label="メニューを閉じる" title="メニューを閉じる"><span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <div class="side-header-text">
+        <div class="brand"><a href="../index.html">案件ドキュメント</a><small>azure-kiban / 検証フェーズ</small></div>
+        <div class="side-title"><a href="../index.html">Azureアプリ公開基盤(検証フェーズ)</a></div>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="ドキュメント一覧">
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#01_要件定義">01 要件定義</a></span>
+        <ol>
+          <li><a href="../01_要件定義/01_企画書.html"><span class="n">01</span>企画書</a></li>
+          <li><a href="../01_要件定義/02_要件定義.html"><span class="n">02</span>要件定義</a></li>
+          <li><a href="../01_要件定義/03_用語集.html"><span class="n">03</span>用語集</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#02_ADR">02 ADR(設計判断)</a></span>
+        <ol>
+          <li><a href="../02_ADR/0001_環境パターン選定.html"><span class="n">01</span>環境パターン選定</a></li>
+          <li><a href="../02_ADR/0002_認証方式.html"><span class="n">02</span>認証方式</a></li>
+          <li><a href="../02_ADR/0003_テンプレート形式.html"><span class="n">03</span>テンプレート形式</a></li>
+        </ol>
+      </div>
+      <div class="phase is-current">
+        <span class="phase-label"><a href="../index.html#03_解説ノート">03 解説ノート</a></span>
+        <ol>
+          <li><a href="../03_解説ノート/01_AppServiceプラン.html"><span class="n">01</span>App Serviceプラン</a></li>
+          <li><a href="../03_解説ノート/02_認可.html"><span class="n">02</span>認可の考え方</a></li>
+          <li><a href="../03_解説ノート/03_CICD.html"><span class="n">03</span>CI/CD</a></li>
+          <li><a class="active" href="../03_解説ノート/04_DNSとSSL.html"><span class="n">04</span>DNS・SSL</a></li>
+          <li><a href="../03_解説ノート/05_環境構成.html"><span class="n">05</span>環境構成</a></li>
+        </ol>
+      </div>
+    </nav>
+    <div class="side-meta">全 11 文書 + インデックス<br>正本: Markdown(docs/)</div>
+  </aside>
+  <main>
+    <div class="hero">
+      <div class="kicker">03 解説ノート · 04/05</div>
+      <h1>DNSとSSL証明書の考え方</h1>
+      <p class="lede">アプリを増やしたときにDNSと証明書の費用・作業がどう増えるかを整理する。</p>
+    </div>
+    <div class="prose">
+<h2>DNSの考え方</h2>
+<ul>
+<li><strong>Azure側(Private DNSゾーン)</strong>: privatelink系のゾーンは全Web App共通で、アプリを増やしてもゾーンは増えない。増えるのはゾーン内のレコードだけで、レコード追加の費用は実質ゼロ。ゾーン自体は約50円/月×数個</li>
+<li><strong>社内DNS側</strong>: アプリ追加ごとにAレコード1行(カスタムドメイン→PEの私設IP)。自社運用のため費用ゼロ。テンプレートの手順に含める</li>
+<li>注意: <strong>DNSレコードはアプリごとに必要</strong>。PEの私設IPがアプリごとに異なるため、ワイルドカードのDNSレコード(<code>*.apps</code>→1つのIP)で済ませることはできない。証明書は1枚に集約できてもDNSは1行ずつ、と覚える</li>
+</ul>
+<h2>SSL証明書: 単一ドメイン契約とワイルドカード契約</h2>
+<p>前提P-5のとおりApp Service証明書を使う(無料のマネージド証明書は、発行時にアプリへのパブリックアクセスが必要なため閉域では使えない)。契約形態は2つある。</p>
+<div class="tblwrap"><table>
+<thead><tr><th scope="col"></th><th scope="col">単一ドメイン契約</th><th scope="col">ワイルドカード契約</th></tr></thead>
+<tbody>
+<tr><td>カバー範囲</td><td>1ドメイン(例: bihin.apps.example.co.jp)につき1枚</td><td><code>*.apps.example.co.jp</code> の第1階層すべてを1枚で</td></tr>
+<tr><td>年額(概算・要精査)</td><td>約1.1万円/枚</td><td>約4.5万円</td></tr>
+<tr><td>アプリ追加のたびに</td><td>1枚ずつ購入・検証・割り当てが増える</td><td>何もしない(既存の1枚を割り当てるだけ)</td></tr>
+<tr><td>ドメイン所有検証</td><td>枚数分のレコードを維持</td><td>1つだけ維持</td></tr>
+<tr><td>更新失敗のリスク箇所</td><td>枚数に比例</td><td>1か所</td></tr>
+</tbody>
+</table></div>
+<figure class="diagram"><figcaption>証明書費用の損益分岐</figcaption><img src="../assets/diagrams/note-dnsssl-breakeven.svg" alt="証明書費用の損益分岐"><p class="zoom-hint">クリックで拡大</p></figure>
+<p><strong>単価の分岐点は4〜5個(概算)</strong>。単一×4枚=約4.2万円がワイルドカード約4.5万円とほぼ並び、5個からは逆転する。ただし検証レコードの管理・更新失敗のリスク・割り当て作業が枚数に比例する運用面を加味すると、アプリが増える計画があるなら<strong>3個前後からワイルドカードが実質有利</strong>。本件は「今後アプリの公開先が複数必要になる」ことが企画の前提なので、ワイルドカード契約を推奨する。</p>
+<h2>ワイルドカード契約時のURL設計</h2>
+<figure class="diagram"><figcaption>ワイルドカード証明書とURL設計</figcaption><img src="../assets/diagrams/note-dnsssl-url.svg" alt="ワイルドカード証明書とURL設計"><p class="zoom-hint">クリックで拡大</p></figure>
+<ul>
+<li><strong>基盤専用の親サブドメインを1つ切る</strong>(例: <code>apps.example.co.jp</code>)。会社ドメイン直下の <code>*.example.co.jp</code> を1枚でカバーするのは影響範囲が広すぎるため避ける</li>
+<li><strong>アプリは第1階層に並べる</strong>: <code>bihin.apps.example.co.jp</code>、<code>keihi.apps.example.co.jp</code></li>
+<li><strong>ワイルドカードが守るのは1階層だけ</strong>。<code>dev.bihin.apps.example.co.jp</code> のような2階層下は対象外になるため、環境の区別はハイフンで同一階層に置く(<code>bihin-dev.apps.example.co.jp</code>)</li>
+<li>親の名前そのもの(<code>apps.example.co.jp</code>)もワイルドカードの対象外。ポータルを置くなら別途1枚か、名前を第1階層に置く(<code>portal.apps.example.co.jp</code>)</li>
+<li>命名規約: <strong>アプリ名=サブドメイン名=Web App名</strong>に揃えると、テンプレートの手順(DNS登録・証明書割り当て・Entra登録)を機械的にできる</li>
+</ul>
+<h3>環境(検証・本番)を跨いだ利用</h3>
+<p>ワイルドカード証明書は環境の区別を知らず、第1階層の名前すべてをカバーする。本番 <code>bihin.apps.example.co.jp</code> と検証 <code>bihin-dev.apps.example.co.jp</code> は同じ1枚でカバーされる。環境をハイフンで同一階層に置く規約は、このためでもある。</p>
+<ul>
+<li>運用: Key Vaultにある同じ証明書を、検証用・本番用の両Web Appにインポートするだけ。枚数課金ではないため費用は増えず、自動更新にも両方が追従する</li>
+<li>留意点1: 1階層ルールを守り続ける。環境が増えても(<code>bihin-stg</code> 等)第1階層に置く限り1枚で足りる</li>
+<li>留意点2: 検証と本番が同じ秘密鍵を共有することになる。App Serviceでは鍵をエクスポート不可のままプラットフォーム管理にできるため実務リスクは小さいが、検証環境の統制レベルを下げる運用(外部委託者の利用等)を始める場合は、環境別に親サブドメインと証明書を分ける(費用は2枚分)</li>
+</ul>
+<h2>自動ローテーション(自動更新)の判断</h2>
+<p>App Service証明書はKey Vaultに格納され、自動更新をONにすると、更新された証明書は同じシークレットの新バージョンとして入り、各Web Appが自動で追従する(定期同期・再起動不要)。</p>
+<div class="tblwrap"><table>
+<thead><tr><th scope="col"></th><th scope="col">自動更新する</th><th scope="col">自動更新しない(手動)</th></tr></thead>
+<tbody>
+<tr><td>失効リスク</td><td>構造的に防げる(更新忘れが起きない)</td><td>更新忘れ=全アプリ停止のリスクを毎年抱える</td></tr>
+<tr><td>作業</td><td>ゼロ(監視のみ)</td><td>毎年の更新・割り当て作業。単一契約なら枚数分</td></tr>
+<tr><td>統制</td><td>更新タイミングを選べない。請求が自動継続</td><td>変更管理に載せて計画更新できる。検証環境で先行確認できる。契約をやめる判断の機会が毎年ある</td></tr>
+<tr><td>向くケース</td><td>本件を含むほぼすべて</td><td>変更統制が厳格で、失効監視の体制が別にある場合のみ</td></tr>
+</tbody>
+</table></div>
+<p>推奨は<strong>自動更新ON+監視</strong>。監視項目は1つに集約される: ドメイン所有検証(パブリックDNS側の検証レコード)が生き続けているか。これが切れると自動更新が止まる。Runbook(運用準備)にこの1行を入れる。</p>
+<h2>費用まとめ(アプリを増やしたときの増分)</h2>
+<div class="tblwrap"><table>
+<thead><tr><th scope="col">項目</th><th scope="col">アプリ追加時の増分</th></tr></thead>
+<tbody>
+<tr><td>DNS(社内・Azure)</td><td>0円(Aレコード1行の作業のみ)</td></tr>
+<tr><td>SSL証明書(ワイルドカード契約)</td><td>0円(既存の1枚を割り当て)</td></tr>
+<tr><td>Private Endpoint</td><td>約1,100円/月</td></tr>
+</tbody>
+</table></div>
+    </div>
+    <nav class="page-nav">
+      <a class="page-nav-item" href="03_CICD.html"><span class="page-nav-dir">← 前</span><span class="page-nav-title">閉域でのCI/CDの考え方</span><span class="page-nav-phase">03 解説ノート</span></a>
+      <a class="page-nav-item page-nav-next" href="05_環境構成.html"><span class="page-nav-dir">次 →</span><span class="page-nav-title">環境構成の考え方</span><span class="page-nav-phase">03 解説ノート</span></a>
+    </nav>
+    <div class="foot">Azureアプリ公開基盤(検証フェーズ) · 正本は Markdown(docs/) · <a href="../index.html">インデックス</a></div>
+  </main>
+</div>
+<dialog class="zoom-dlg" id="zoomDlg">
+  <div class="zoom-bar">
+    <span class="title">図解</span>
+    <button type="button" data-z="out" title="縮小">−</button>
+    <button type="button" data-z="in" title="拡大">＋</button>
+    <button type="button" data-z="reset" title="全体表示">リセット</button>
+    <button type="button" data-z="close" title="閉じる">閉じる ✕</button>
+  </div>
+  <div class="zoom-stage" id="zoomStage"></div>
+</dialog>
+<script src="../assets/nav.js" defer></script>
+<script src="../assets/enhance.js" defer></script>
+</body>
+</html>

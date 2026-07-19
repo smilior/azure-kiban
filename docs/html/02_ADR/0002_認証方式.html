@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>認証方式の選定(Easy Auth + Microsoft Entra ID) ｜ Azureアプリ公開基盤(検証フェーズ)</title>
+<meta name="description" content="認証をEasy Auth+Microsoft Entra IDへ委譲し認証コンポーネントを自作しないと決定したADR。ログインの流れとGraph API連携の2方式を含む。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/base.css">
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidePanel">
+    <div class="side-header">
+      <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="true" aria-label="メニューを閉じる" title="メニューを閉じる"><span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <div class="side-header-text">
+        <div class="brand"><a href="../index.html">案件ドキュメント</a><small>azure-kiban / 検証フェーズ</small></div>
+        <div class="side-title"><a href="../index.html">Azureアプリ公開基盤(検証フェーズ)</a></div>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="ドキュメント一覧">
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#01_要件定義">01 要件定義</a></span>
+        <ol>
+          <li><a href="../01_要件定義/01_企画書.html"><span class="n">01</span>企画書</a></li>
+          <li><a href="../01_要件定義/02_要件定義.html"><span class="n">02</span>要件定義</a></li>
+          <li><a href="../01_要件定義/03_用語集.html"><span class="n">03</span>用語集</a></li>
+        </ol>
+      </div>
+      <div class="phase is-current">
+        <span class="phase-label"><a href="../index.html#02_ADR">02 ADR(設計判断)</a></span>
+        <ol>
+          <li><a href="../02_ADR/0001_環境パターン選定.html"><span class="n">01</span>環境パターン選定</a></li>
+          <li><a class="active" href="../02_ADR/0002_認証方式.html"><span class="n">02</span>認証方式</a></li>
+          <li><a href="../02_ADR/0003_テンプレート形式.html"><span class="n">03</span>テンプレート形式</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#03_解説ノート">03 解説ノート</a></span>
+        <ol>
+          <li><a href="../03_解説ノート/01_AppServiceプラン.html"><span class="n">01</span>App Serviceプラン</a></li>
+          <li><a href="../03_解説ノート/02_認可.html"><span class="n">02</span>認可の考え方</a></li>
+          <li><a href="../03_解説ノート/03_CICD.html"><span class="n">03</span>CI/CD</a></li>
+          <li><a href="../03_解説ノート/04_DNSとSSL.html"><span class="n">04</span>DNS・SSL</a></li>
+          <li><a href="../03_解説ノート/05_環境構成.html"><span class="n">05</span>環境構成</a></li>
+        </ol>
+      </div>
+    </nav>
+    <div class="side-meta">全 11 文書 + インデックス<br>正本: Markdown(docs/)</div>
+  </aside>
+  <main>
+    <div class="hero">
+      <div class="kicker">02 ADR(設計判断) · 02/03</div>
+      <h1>認証方式の選定(Easy Auth + Microsoft Entra ID)</h1>
+      <p class="lede">現行ap-authの自作認証をやめ、基盤の組み込み認証(Easy Auth)+Microsoft Entra IDへ委譲することを決定する。</p>
+    </div>
+    <div class="prose">
+      <p>状態: 決定済み<br>日付: 2026-07-05<br>関連: docs/project/02_requirements.md(前提P-7、US-07)、0001-select-hosting-pattern.md</p>
+
+      <h2>背景</h2>
+      <p>現行構成では独立コンポーネントap-authがM365 SSO・トークン管理・OAuthのメール送信を担い、セッションとトークンはRedisに格納している。新基盤ではこの自作をやめて基盤機能へ委譲できるかが論点だった(ADR-0001の認証節)。前提は社内閉域網・M365テナント(Entra ID)の利用。</p>
+
+      <h2>選択肢</h2>
+      <ul>
+        <li>案1: ap-authをコンテナのまま新基盤へ移植する。実績はあるが、認証コードとRedisの保守が残り、PaaS化の目的(保守の委譲)に反する</li>
+        <li>案2: 各アプリ内でMSAL等のライブラリを使い認証を実装する。柔軟だが、アプリ数に比例して実装・シークレット管理・更新が増える</li>
+        <li>案3: 基盤の組み込み認証(Easy Auth)+Entra IDに委譲する。アプリのコード変更ほぼ不要で、セッション・トークン管理も基盤が代行する</li>
+      </ul>
+
+      <h2>決定</h2>
+      <p>案3を採用する。認証はEasy Auth(App Serviceの組み込み認証)+Microsoft Entra IDで行い、認証コンポーネントは自作しない。要件定義の前提P-7に反映した。</p>
+
+      <h2>理由</h2>
+      <ul>
+        <li>アプリにSDKや認証コードを入れずに、テンプレートの設定だけで全アプリへ同じ認証を適用できる。「テンプレートから環境がすぐできる」という第1段のゴールに直結する</li>
+        <li>セッション(Cookie)とトークン(トークンストア)の管理を基盤が代行し、現行Redisのセッション・トークン用途が不要になる</li>
+        <li>Redirect URIの解決は通常アクセスと同じ仕組み(社内DNS→Private Endpoint)に乗るため、閉域網でも成立する。Entra IDが閉域内へ通信することはない</li>
+      </ul>
+
+      <h2>仕組み</h2>
+
+      <h3>ログインの流れ</h3>
+      <p>Easy Authはアプリの手前に基盤が挟む「認証の門番」で、全リクエストがアプリのコードに届く前にこの層を通る。</p>
+      <figure class="diagram"><figcaption>Easy Authのログインの流れ</figcaption><img src="../assets/diagrams/0002-easyauth-login.svg" alt="Easy Authのログインの流れ"><p class="zoom-hint">クリックで拡大</p></figure>
+      <ol>
+        <li>未ログインの利用者がアプリへアクセスする(社内DNS→PE経由)</li>
+        <li>Easy AuthがセッションCookieの無いことを確認し、ブラウザをEntra IDへリダイレクトする</li>
+        <li>利用者がM365アカウントでログインする(ここだけM365側への通信)</li>
+        <li>Entra IDはブラウザへ「redirect_uri(/.auth/login/aad/callback)へ戻れ」と指示するだけで、閉域内のアプリへは一切通信しない</li>
+        <li>ブラウザが社内DNS→PE経由でcallbackへ戻る</li>
+        <li>Easy Authがトークンを検証・保管し、セッションCookie(AppServiceAuthSession)を発行する</li>
+        <li>以降のリクエストは、利用者情報をヘッダー(X-MS-CLIENT-PRINCIPAL)に付けてアプリへ転送される</li>
+        <li>アプリはヘッダーを読むだけで利用者を識別できる。ログイン処理のコードは書かない</li>
+      </ol>
+      <p>Redirect URIはEntra IDのアプリ登録に「文字列として」事前登録するだけで、Entra側から到達可能である必要はない。</p>
+
+      <h3>セッションとトークンの管理(Redisが不要になる理由)</h3>
+      <div class="tblwrap">
+        <table>
+          <thead>
+            <tr><th scope="col">管理対象</th><th scope="col">現行(ap-auth+Redis)</th><th scope="col">新基盤(Easy Auth)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ログインセッション</td><td>Redisに格納</td><td>Easy AuthのセッションCookie+内部ストアが保持</td></tr>
+            <tr><td>SSO後のアクセストークン</td><td>Redisに格納</td><td>Easy Authのトークンストアが暗号化保管。アプリはヘッダーか /.auth/me で取得</td></tr>
+            <tr><td>トークンの更新</td><td>ap-authが実装</td><td>/.auth/refresh を呼ぶとEasy Authがリフレッシュトークンで更新</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Redisが残る用途はアプリ独自のキャッシュ・一時データのみで、現行の利用がセッション+トークンに限られるため、新基盤では既定で設けない(必要になったアプリが出た時に追加する)。</p>
+
+      <h3>Graph API連携(メール送信)</h3>
+      <figure class="diagram"><figcaption>Graph API連携の2方式</figcaption><img src="../assets/diagrams/0002-graphapi.svg" alt="Graph API連携の2方式"><p class="zoom-hint">クリックで拡大</p></figure>
+      <div class="tblwrap">
+        <table>
+          <thead>
+            <tr><th scope="col"></th><th scope="col">方式A: 利用者本人として送る</th><th scope="col">方式B: システムとして送る</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>許可の種類</td><td>委任アクセス許可(Mail.Send)</td><td>アプリケーション許可(Mail.Send)</td></tr>
+            <tr><td>トークンの入手先</td><td>Easy Authのトークンストア(ログイン時に Mail.Send+offline_access を要求)</td><td>Managed Identity(その場で取得。保存しない)</td></tr>
+            <tr><td>差出人</td><td>ログイン中の利用者</td><td>no-reply等のサービス用メールボックス</td></tr>
+            <tr><td>向く場面</td><td>利用者の操作起点の送信</td><td>通知メール・バッチ送信</td></tr>
+            <tr><td>統制上の注意</td><td>利用者の権限の範囲内</td><td>テナント全体の送信権限になるため、Application Access Policy(Exchange Online)で送信可能なメールボックスを限定する(必須)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>メール送信はUS-11で検証する。差出人の方式(利用者本人かシステムか)は利用部門への確認事項で確定し、US-11の検証内容に反映する。</p>
+
+      <h3>複数アプリと静的サイト</h3>
+      <ul>
+        <li>複数アプリ(US-09): セッションCookieはアプリごとに独立する(US-09-S3)。ただしEntra ID側のログインセッションが効くため、2つ目以降のアプリはサイレント認証で自動的にログインが通り、利用者の操作は実質1回で済む</li>
+        <li>静的サイト(US-07-S4): P1(App Service集約)では静的サイトもAppのため、同じEasy Authをサイト単位で有効/無効にできる</li>
+      </ul>
+
+      <h2>捨てた案とその理由</h2>
+      <ul>
+        <li>案1(ap-auth移植): 認証コード・Redis・コンテナの保守が残り、IaaS保守の委譲という企画の目的に反する</li>
+        <li>案2(アプリ内MSAL実装): アプリ数に比例して実装とシークレット管理が増える。将来のID/パスワード認証(派遣社員向け、要件定義の将来検討)を扱う際に部分的に再評価する</li>
+      </ul>
+      <p>注: Easy AuthはApp Service系の機能。ADR-0001でP3(Container Apps)系を選ぶ場合は、同等の組み込み認証機能に読み替える(決定の趣旨=「認証は自作せず基盤へ委譲」は変わらない)。</p>
+    </div>
+    <nav class="page-nav">
+      <a class="page-nav-item" href="0001_環境パターン選定.html"><span class="page-nav-dir">← 前</span><span class="page-nav-title">アプリ公開基盤の環境パターン選定</span><span class="page-nav-phase">02 ADR(設計判断)</span></a>
+      <a class="page-nav-item page-nav-next" href="0003_テンプレート形式.html"><span class="page-nav-dir">次 →</span><span class="page-nav-title">テンプレートの記述形式(Bicep採用)</span><span class="page-nav-phase">02 ADR(設計判断)</span></a>
+    </nav>
+    <div class="foot">Azureアプリ公開基盤(検証フェーズ) · 正本は Markdown(docs/) · <a href="../index.html">インデックス</a></div>
+  </main>
+</div>
+<dialog class="zoom-dlg" id="zoomDlg">
+  <div class="zoom-bar">
+    <span class="title">図解</span>
+    <button type="button" data-z="out" title="縮小">−</button>
+    <button type="button" data-z="in" title="拡大">＋</button>
+    <button type="button" data-z="reset" title="全体表示">リセット</button>
+    <button type="button" data-z="close" title="閉じる">閉じる ✕</button>
+  </div>
+  <div class="zoom-stage" id="zoomStage"></div>
+</dialog>
+<script src="../assets/nav.js" defer></script>
+<script src="../assets/enhance.js" defer></script>
+</body>
+</html>

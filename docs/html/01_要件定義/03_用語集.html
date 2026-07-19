@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用語集 ｜ Azureアプリ公開基盤(検証フェーズ)</title>
+<meta name="description" content="Azureアプリ公開基盤(検証フェーズ)の用語集。基盤・現行VM運用・認証・ネットワークに関する用語の定義を一覧にする。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/base.css">
+</head>
+<body>
+<div class="wrap">
+  <aside id="sidePanel">
+    <div class="side-header">
+      <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="true" aria-label="メニューを閉じる" title="メニューを閉じる"><span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      <div class="side-header-text">
+        <div class="brand"><a href="../index.html">案件ドキュメント</a><small>azure-kiban / 検証フェーズ</small></div>
+        <div class="side-title"><a href="../index.html">Azureアプリ公開基盤(検証フェーズ)</a></div>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="ドキュメント一覧">
+      <div class="phase is-current">
+        <span class="phase-label"><a href="../index.html#01_要件定義">01 要件定義</a></span>
+        <ol>
+          <li><a href="../01_要件定義/01_企画書.html"><span class="n">01</span>企画書</a></li>
+          <li><a href="../01_要件定義/02_要件定義.html"><span class="n">02</span>要件定義</a></li>
+          <li><a class="active" href="../01_要件定義/03_用語集.html"><span class="n">03</span>用語集</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#02_ADR">02 ADR(設計判断)</a></span>
+        <ol>
+          <li><a href="../02_ADR/0001_環境パターン選定.html"><span class="n">01</span>環境パターン選定</a></li>
+          <li><a href="../02_ADR/0002_認証方式.html"><span class="n">02</span>認証方式</a></li>
+          <li><a href="../02_ADR/0003_テンプレート形式.html"><span class="n">03</span>テンプレート形式</a></li>
+        </ol>
+      </div>
+      <div class="phase">
+        <span class="phase-label"><a href="../index.html#03_解説ノート">03 解説ノート</a></span>
+        <ol>
+          <li><a href="../03_解説ノート/01_AppServiceプラン.html"><span class="n">01</span>App Serviceプラン</a></li>
+          <li><a href="../03_解説ノート/02_認可.html"><span class="n">02</span>認可の考え方</a></li>
+          <li><a href="../03_解説ノート/03_CICD.html"><span class="n">03</span>CI/CD</a></li>
+          <li><a href="../03_解説ノート/04_DNSとSSL.html"><span class="n">04</span>DNS・SSL</a></li>
+          <li><a href="../03_解説ノート/05_環境構成.html"><span class="n">05</span>環境構成</a></li>
+        </ol>
+      </div>
+    </nav>
+    <div class="side-meta">全 11 文書 + インデックス<br>正本: Markdown(docs/)</div>
+  </aside>
+  <main>
+    <div class="hero">
+      <div class="kicker">01 要件定義 · 03/03</div>
+      <h1>用語集</h1>
+      <p class="lede">要件定義をはじめ各文書と用語を一致させるための一覧であり、新しい用語が出たら随時追記する。</p>
+    </div>
+    <div class="prose">
+<h2>用語一覧</h2>
+<div class="tblwrap"><table><thead><tr><th scope="col">用語</th><th scope="col">定義</th><th scope="col">コード上の名前</th></tr></thead><tbody>
+<tr><td>アイデア探求ワーク</td><td>社内の研究テーマ制度。本件はその一環の検証プロジェクト。</td><td>-</td></tr>
+<tr><td>静的基盤</td><td>静的コンテンツを公開するAzure上の基盤。本件で構築する2基盤の1つ。</td><td>未定</td></tr>
+<tr><td>動的基盤</td><td>PythonとNext.jsのアプリを公開するAzure上の基盤。本件で構築する2基盤の1つ。</td><td>未定</td></tr>
+<tr><td>基盤テンプレート</td><td>基盤を複製して新規アプリを公開するためのひな形一式(構成定義と手順)。</td><td>未定</td></tr>
+<tr><td>検証アプリ</td><td>基盤の検証のために公開するサンプルアプリ。静的サイト・Python・Next.jsの3本。</td><td>未定</td></tr>
+<tr><td>現行VM運用</td><td>Azure VM(Ubuntu)+Dockerによる現在のアプリ公開方式。比較対象。</td><td>-</td></tr>
+<tr><td>infra-compose</td><td>現行VM運用の共通基盤コンポーネント。nginx・PostgreSQL・Redisをまとめて動かす。</td><td>infra-compose</td></tr>
+<tr><td>ap-auth</td><td>現行VM運用の認証コンポーネント。M365 Graph APIでSSOとOAuthのメール送信を担う。</td><td>ap-auth</td></tr>
+<tr><td>ap-xxxx</td><td>現行VM運用の個別アプリケーションコンポーネントの総称。</td><td>ap-xxxx</td></tr>
+<tr><td>公開所要時間</td><td>新規アプリ1件を公開できる状態にするまでの作業時間。US-06で実測する。</td><td>-</td></tr>
+<tr><td>共有基盤</td><td>動的基盤のうち複数アプリが共同利用する部分(PostgreSQL・認証)。アプリ追加時に作り直さない。</td><td>未定</td></tr>
+<tr><td>社内閉域網</td><td>社内のプライベートネットワーク。基盤と公開URLはこの中に閉じ、パブリック公開しない。</td><td>-</td></tr>
+<tr><td>SSO</td><td>M365アカウントによるシングルサインオン。動的基盤の認証のMVP。</td><td>-</td></tr>
+<tr><td>セッション</td><td>ログイン後の利用者の状態。現行はRedisで管理。新基盤では基盤の認証機能(Easy Auth)が保持する。</td><td>-</td></tr>
+<tr><td>トークン</td><td>SSO認証後に発行されるアクセス資格情報。現行はRedisに格納。新基盤では基盤のトークンストアまたはManaged Identityで扱う。</td><td>-</td></tr>
+<tr><td>Easy Auth</td><td>App Serviceの組み込み認証。アプリの手前でSSO誘導・トークン検証・セッション発行・トークン保管を代行する。</td><td>-</td></tr>
+<tr><td>Managed Identity</td><td>Azureがアプリ自身に発行するパスワード不要の身分証。シークレットを保存せずGraph API等のトークンをその場で取得する。</td><td>-</td></tr>
+<tr><td>Blob Storage</td><td>アプリのファイルを保存するAzureのストレージ。アプリごとに保存領域を分離する(US-10)。</td><td>-</td></tr>
+<tr><td>Application Access Policy</td><td>システムとしてのメール送信で、送信可能なメールボックスを限定するExchange Onlineの統制設定(US-11-S2)。</td><td>-</td></tr>
+<tr><td>カスタムドメイン</td><td>基盤発行のURLに代えて割り当てる社内のドメイン名。</td><td>-</td></tr>
+<tr><td>App Service証明書</td><td>Azureが発行・更新を管理するSSL証明書サービス。カスタムドメインのHTTPS化に使う。</td><td>-</td></tr>
+<tr><td>社内VNet</td><td>Azure上の社内既存の仮想ネットワーク。基盤の全リソースをここに接続する。</td><td>-</td></tr>
+<tr><td>Private Endpoint(PE)</td><td>AzureのPaaSサービスに社内VNet内の私設IPで届く専用の入口。公開側の入口を塞ぎ、閉域前提(P-1)を実現する。</td><td>-</td></tr>
+<tr><td>Private DNSゾーン</td><td>PEの私設IPを名前解決するAzure側のDNS。VNet内では自動で効くが、社内DNSからは別途引き込みが要る。</td><td>-</td></tr>
+<tr><td>自動デプロイ</td><td>Git pushを起点にビルドから公開までを自動で行う仕組み。手動デプロイは行わない。</td><td>-</td></tr>
+<tr><td>PostgreSQL</td><td>動的基盤のアプリが使うリレーショナルデータベース。現行構成と同一製品。</td><td>-</td></tr>
+<tr><td>Redis</td><td>現行構成でセッションとトークンを格納するインメモリストア。新基盤では基盤の認証機能が代行するため原則設けない(必要時のみ追加)。</td><td>-</td></tr>
+<tr><td>チーム開発者</td><td>検証アプリを開発しデプロイする起案チームのメンバー。検証中は起案者1名。</td><td>-</td></tr>
+<tr><td>基盤管理者</td><td>基盤テンプレートを整備し費用と稼働を記録する担当。起案者を想定。</td><td>-</td></tr>
+<tr><td>アプリ利用者</td><td>公開された検証アプリをブラウザで使うチーム内の利用者。</td><td>-</td></tr>
+</tbody></table></div>
+    </div>
+    <nav class="page-nav">
+      <a class="page-nav-item" href="02_要件定義.html"><span class="page-nav-dir">← 前</span><span class="page-nav-title">Azureアプリ公開基盤の要件定義</span><span class="page-nav-phase">01 要件定義</span></a>
+      <a class="page-nav-item page-nav-next" href="../02_ADR/0001_環境パターン選定.html"><span class="page-nav-dir">次 →</span><span class="page-nav-title">アプリ公開基盤の環境パターン選定</span><span class="page-nav-phase">02 ADR(設計判断)</span></a>
+    </nav>
+    <div class="foot">Azureアプリ公開基盤(検証フェーズ) · 正本は Markdown(docs/) · <a href="../index.html">インデックス</a></div>
+  </main>
+</div>
+<dialog class="zoom-dlg" id="zoomDlg">
+  <div class="zoom-bar">
+    <span class="title">図解</span>
+    <button type="button" data-z="out" title="縮小">−</button>
+    <button type="button" data-z="in" title="拡大">＋</button>
+    <button type="button" data-z="reset" title="全体表示">リセット</button>
+    <button type="button" data-z="close" title="閉じる">閉じる ✕</button>
+  </div>
+  <div class="zoom-stage" id="zoomStage"></div>
+</dialog>
+<script src="../assets/nav.js" defer></script>
+<script src="../assets/enhance.js" defer></script>
+</body>
+</html>

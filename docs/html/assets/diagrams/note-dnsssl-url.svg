@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 470" font-family="Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif">
+<rect x="0" y="0" width="1120" height="470" fill="#ffffff"/>
+<text x="24" y="34" font-size="16" fill="#182635" text-anchor="start" font-weight="bold">ワイルドカード証明書とURL設計</text>
+<text x="24" y="53" font-size="11" fill="#5f6f80" text-anchor="start" font-weight="normal">基盤専用の親サブドメインを1つ切り、アプリは第1階層に並べる。ワイルドカードが守るのは1階層だけ。</text>
+<rect x="40" y="80" width="300" height="50" rx="8" fill="#eef1f4" stroke="#9fb0c0" stroke-width="1.4"/>
+<text x="190" y="104" font-size="13" fill="#182635" text-anchor="middle" font-weight="bold" font-family="SF Mono, Consolas, Courier New, monospace">example.co.jp</text>
+<text x="190" y="120" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">会社のドメイン(パブリックDNSゾーンを所有)</text>
+<rect x="40" y="170" width="300" height="50" rx="8" fill="#e3f0fa" stroke="#0d6fbe" stroke-width="1.4"/>
+<text x="190" y="194" font-size="13" fill="#182635" text-anchor="middle" font-weight="bold" font-family="SF Mono, Consolas, Courier New, monospace">apps.example.co.jp</text>
+<text x="190" y="210" font-size="10" fill="#5f6f80" text-anchor="middle" font-weight="normal">基盤専用の親(この名前自体は対象外)</text>
+<line x1="190" y1="130" x2="190" y2="170" stroke="#9fb0c0" stroke-width="1.4"/>
+<rect x="440" y="80" width="640" height="300" rx="8" fill="#dff2ef" stroke="#0e7a6e" stroke-width="1.4" stroke-dasharray="7 4"/>
+<text x="460" y="106" font-size="12.5" fill="#0e7a6e" text-anchor="start" font-weight="bold">ワイルドカード証明書 *.apps.example.co.jp(1枚・年額固定)</text>
+<rect x="470" y="130" width="400" height="46" rx="8" fill="#ffffff" stroke="#0e7a6e" stroke-width="1.4"/>
+<text x="485" y="152" font-size="12" fill="#182635" text-anchor="start" font-weight="normal" font-family="SF Mono, Consolas, Courier New, monospace">bihin.apps.example.co.jp</text>
+<text x="485" y="167" font-size="9.5" fill="#5f6f80" text-anchor="start" font-weight="normal">備品管理アプリ</text>
+<text x="900" y="158" font-size="11" fill="#0e7a6e" text-anchor="start" font-weight="bold">カバーされる</text>
+<rect x="470" y="190" width="400" height="46" rx="8" fill="#ffffff" stroke="#0e7a6e" stroke-width="1.4"/>
+<text x="485" y="212" font-size="12" fill="#182635" text-anchor="start" font-weight="normal" font-family="SF Mono, Consolas, Courier New, monospace">keihi.apps.example.co.jp</text>
+<text x="485" y="227" font-size="9.5" fill="#5f6f80" text-anchor="start" font-weight="normal">経費アプリ</text>
+<text x="900" y="218" font-size="11" fill="#0e7a6e" text-anchor="start" font-weight="bold">カバーされる</text>
+<rect x="470" y="250" width="400" height="46" rx="8" fill="#ffffff" stroke="#0e7a6e" stroke-width="1.4"/>
+<text x="485" y="272" font-size="12" fill="#182635" text-anchor="start" font-weight="normal" font-family="SF Mono, Consolas, Courier New, monospace">bihin-dev.apps.example.co.jp</text>
+<text x="485" y="287" font-size="9.5" fill="#5f6f80" text-anchor="start" font-weight="normal">検証環境はハイフンで同一階層に</text>
+<text x="900" y="278" font-size="11" fill="#0e7a6e" text-anchor="start" font-weight="bold">カバーされる</text>
+<rect x="470" y="310" width="400" height="46" rx="8" fill="#ffffff" stroke="#a34d0c" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="485" y="332" font-size="12" fill="#182635" text-anchor="start" font-weight="normal" font-family="SF Mono, Consolas, Courier New, monospace">dev.bihin.apps.example.co.jp</text>
+<text x="485" y="347" font-size="9.5" fill="#5f6f80" text-anchor="start" font-weight="normal">2階層下は守られない</text>
+<text x="900" y="338" font-size="11" fill="#a34d0c" text-anchor="start" font-weight="bold">対象外</text>
+<line x1="340" y1="195" x2="440" y2="195" stroke="#0d6fbe" stroke-width="1.6"/>
+<text x="24" y="415" font-size="12" fill="#182635" text-anchor="start" font-weight="normal">URLの規約: アプリ名 = サブドメイン名 = Web App名 に揃えると、テンプレートの手順(DNS登録・証明書割り当て)を機械的にできる。</text>
+<text x="24" y="435" font-size="12" fill="#182635" text-anchor="start" font-weight="normal">DNSレコードはアプリごとに必要(PEの私設IPがアプリごとに異なるため、*.apps を1行で済ませることはできない)。</text>
+</svg>
